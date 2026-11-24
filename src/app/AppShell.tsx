@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BookOpen, Briefcase, Code2, User } from 'lucide-react-native';
+import { Briefcase, Code2, Home, User } from 'lucide-react-native';
 import { ThemeProvider, useTheme } from '../core/theme/ThemeContext';
 import { ProgressProvider, useProgress } from '../core/storage/progressStore';
 import { getModuleById } from '../data/curriculum';
@@ -35,7 +35,10 @@ function MainShell() {
         <>
           <View style={styles.content}>
             {activeTab === 'path' ? (
-              <PathScreen onStartModule={(id) => setActiveModuleId(id)} />
+              <PathScreen
+                onStartModule={(id) => setActiveModuleId(id)}
+                onNavigateTab={(tab) => setActiveTab(tab)}
+              />
             ) : null}
             {activeTab === 'sandbox' ? <SandboxScreen /> : null}
             {activeTab === 'interview' ? <InterviewScreen /> : null}
@@ -47,17 +50,20 @@ function MainShell() {
           <View
             style={[
               styles.tabBar,
-              { backgroundColor: palette.bg, borderTopColor: palette.border },
+              {
+                backgroundColor: palette.surface,
+                borderTopColor: palette.borderSubtle,
+              },
             ]}
           >
             <TabButton
-              label="Yol"
+              label="Ana Sayfa"
               active={activeTab === 'path'}
               onPress={() => setActiveTab('path')}
-              icon={(color) => <BookOpen size={20} color={color} strokeWidth={1.9} />}
+              icon={(color) => <Home size={20} color={color} strokeWidth={1.9} />}
             />
             <TabButton
-              label="Lab"
+              label="Kod Lab"
               active={activeTab === 'sandbox'}
               onPress={() => setActiveTab('sandbox')}
               icon={(color) => <Code2 size={20} color={color} strokeWidth={1.9} />}
@@ -93,21 +99,15 @@ function TabButton({
   icon: (color: string) => React.ReactNode;
 }) {
   const { palette } = useTheme();
-  const color = active ? palette.textPrimary : palette.textMuted;
+  const color = active ? palette.coral : palette.textMuted;
 
   return (
     <Pressable onPress={onPress} style={styles.tabItem}>
-      <View
-        style={[
-          styles.activeIndicator,
-          { backgroundColor: active ? palette.accent : 'transparent' },
-        ]}
-      />
       {icon(color)}
       <Text
         style={[
           TYPOGRAPHY.micro,
-          { color, marginTop: 4, fontWeight: active ? '700' : '500' },
+          { color, marginTop: 5, fontWeight: active ? '700' : '500' },
         ]}
       >
         {label}
@@ -143,17 +143,12 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    paddingBottom: 4,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-  },
-  activeIndicator: {
-    width: 24,
-    height: 2,
-    marginBottom: 6,
   },
 });

@@ -4,112 +4,144 @@ export interface ThemePalette {
   mode: ThemeMode;
   bg: string;
   surface: string;
-  surfaceElevated: string;
+  surfaceSoft: string;
   surfacePressed: string;
   border: string;
-  borderStrong: string;
+  borderSubtle: string;
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
-  accent: string;
-  accentText: string;
+  /** Primary forest green */
+  primary: string;
+  primaryText: string;
+  /** Warm terracotta accent (active tab / highlights) */
+  coral: string;
+  /** Flat organic pastel tiles (zero gradients) */
+  sageBg: string;
+  sageText: string;
+  peachBg: string;
+  peachText: string;
+  sandBg: string;
+  sandText: string;
+  slateBg: string;
+  slateText: string;
+  /** Banner dark forest card */
+  bannerBg: string;
+  bannerText: string;
+  bannerMuted: string;
+  /** Code block (calm dark slate for high readability) */
   codeBg: string;
   codeBorder: string;
   codeText: string;
   codeLineNum: string;
+  /** Semantic feedback */
   success: string;
   successBg: string;
-  successBorder: string;
   error: string;
   errorBg: string;
-  errorBorder: string;
   warning: string;
   warningBg: string;
-  warningBorder: string;
 }
 
 export const LIGHT_PALETTE: ThemePalette = {
   mode: 'light',
-  bg: '#FFFFFF',
-  surface: '#F7F7F8',
-  surfaceElevated: '#FFFFFF',
-  surfacePressed: '#ECECEF',
-  border: '#E4E4E7',
-  borderStrong: '#18181B',
-  textPrimary: '#09090B',
-  textSecondary: '#3F3F46',
-  textMuted: '#71717A',
-  accent: '#09090B',
-  accentText: '#FFFFFF',
-  codeBg: '#F4F4F5',
-  codeBorder: '#E4E4E7',
-  codeText: '#18181B',
-  codeLineNum: '#A1A1AA',
-  success: '#15803D',
-  successBg: '#F0FDF4',
-  successBorder: '#BBF7D0',
-  error: '#B91C1C',
-  errorBg: '#FEF2F2',
-  errorBorder: '#FECACA',
-  warning: '#B45309',
-  warningBg: '#FFFBEB',
-  warningBorder: '#FDE68A',
+  bg: '#F6F5F0',
+  surface: '#FFFFFF',
+  surfaceSoft: '#EFECE6',
+  surfacePressed: '#ECEAE3',
+  border: '#E8E5DD',
+  borderSubtle: '#F0EDE6',
+  textPrimary: '#1A1C1A',
+  textSecondary: '#525752',
+  textMuted: '#8B908B',
+  primary: '#1E4D3B',
+  primaryText: '#FFFFFF',
+  coral: '#D9724B',
+  sageBg: '#E6F2EC',
+  sageText: '#1E4D3B',
+  peachBg: '#F9EAE1',
+  peachText: '#A84E2D',
+  sandBg: '#FBF3D9',
+  sandText: '#8F6816',
+  slateBg: '#EBF0F5',
+  slateText: '#2F4D73',
+  bannerBg: '#1E4D3B',
+  bannerText: '#FFFFFF',
+  bannerMuted: '#C7DDD3',
+  codeBg: '#191C1A',
+  codeBorder: '#2A2E2B',
+  codeText: '#F2F0EA',
+  codeLineNum: '#6B726D',
+  success: '#1E7A52',
+  successBg: '#E6F4ED',
+  error: '#C0443A',
+  errorBg: '#FBEAE8',
+  warning: '#A66D14',
+  warningBg: '#FDF4E1',
 };
 
 export const DARK_PALETTE: ThemePalette = {
   mode: 'dark',
-  bg: '#0A0A0B',
-  surface: '#131316',
-  surfaceElevated: '#1A1A1F',
-  surfacePressed: '#232329',
-  border: '#27272A',
-  borderStrong: '#FAFAFA',
-  textPrimary: '#FAFAFA',
-  textSecondary: '#D4D4D8',
-  textMuted: '#8E8E98',
-  accent: '#FAFAFA',
-  accentText: '#09090B',
-  codeBg: '#111114',
-  codeBorder: '#27272A',
-  codeText: '#F4F4F5',
-  codeLineNum: '#52525B',
-  success: '#22C55E',
-  successBg: '#091E12',
-  successBorder: '#14532D',
-  error: '#EF4444',
-  errorBg: '#220C0C',
-  errorBorder: '#7F1D1D',
-  warning: '#F59E0B',
-  warningBg: '#221807',
-  warningBorder: '#78350F',
+  bg: '#111312',
+  surface: '#1A1D1B',
+  surfaceSoft: '#222623',
+  surfacePressed: '#282D2A',
+  border: '#2A2F2C',
+  borderSubtle: '#222624',
+  textPrimary: '#F3F2EC',
+  textSecondary: '#B5BBB6',
+  textMuted: '#7E8580',
+  primary: '#3BA176',
+  primaryText: '#0C1712',
+  coral: '#E88761',
+  sageBg: '#172921',
+  sageText: '#7CD4AE',
+  peachBg: '#2B1E19',
+  peachText: '#F0A486',
+  sandBg: '#2A2416',
+  sandText: '#E7C873',
+  slateBg: '#1A232E',
+  slateText: '#93B7E0',
+  bannerBg: '#193B2D',
+  bannerText: '#F5F4EE',
+  bannerMuted: '#A8CCBC',
+  codeBg: '#131614',
+  codeBorder: '#2A2F2C',
+  codeText: '#EFECE6',
+  codeLineNum: '#5E6661',
+  success: '#4CC38A',
+  successBg: '#13281E',
+  error: '#EC6B61',
+  errorBg: '#2C1615',
+  warning: '#E5AE4E',
+  warningBg: '#2A2112',
 };
 
 export const SPACING = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 32,
+  md: 14,
+  lg: 20,
+  xl: 26,
+  xxl: 34,
 } as const;
 
 export const RADIUS = {
-  xs: 4,
-  sm: 8,
-  md: 10,
-  lg: 12,
-  full: 999,
+  sm: 12,
+  md: 18,
+  lg: 24,
+  pill: 999,
 } as const;
 
 export const TYPOGRAPHY = {
   mono: 'monospace',
-  display: { fontSize: 28, fontWeight: '700' as const, letterSpacing: -0.8, lineHeight: 34 },
-  h1: { fontSize: 22, fontWeight: '700' as const, letterSpacing: -0.5, lineHeight: 28 },
-  h2: { fontSize: 17, fontWeight: '600' as const, letterSpacing: -0.3, lineHeight: 23 },
-  h3: { fontSize: 15, fontWeight: '600' as const, letterSpacing: -0.2, lineHeight: 21 },
+  display: { fontSize: 26, fontWeight: '700' as const, letterSpacing: -0.6, lineHeight: 32 },
+  h1: { fontSize: 21, fontWeight: '700' as const, letterSpacing: -0.4, lineHeight: 27 },
+  h2: { fontSize: 17, fontWeight: '600' as const, letterSpacing: -0.2, lineHeight: 23 },
+  h3: { fontSize: 15, fontWeight: '600' as const, letterSpacing: -0.1, lineHeight: 21 },
   body: { fontSize: 14, fontWeight: '400' as const, lineHeight: 21 },
   bodyStrong: { fontSize: 14, fontWeight: '600' as const, lineHeight: 21 },
-  caption: { fontSize: 12, fontWeight: '500' as const, lineHeight: 16 },
-  micro: { fontSize: 11, fontWeight: '600' as const, letterSpacing: 0.6, lineHeight: 14 },
+  caption: { fontSize: 12, fontWeight: '500' as const, lineHeight: 17 },
+  micro: { fontSize: 11, fontWeight: '600' as const, letterSpacing: 0.4, lineHeight: 15 },
   code: { fontSize: 13, fontFamily: 'monospace', lineHeight: 20 },
 } as const;

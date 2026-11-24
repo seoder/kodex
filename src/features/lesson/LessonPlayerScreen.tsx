@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   BackHandler,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -36,14 +37,16 @@ import {
 } from '../../data/curriculum';
 import {
   CodeBlock,
+  getTopicTone,
   IOComparisonBox,
-  PrimaryButton,
+  PillButton,
   ProgressBar,
+  SoftBadge,
+  SoftCard,
   SqlTablePreview,
-  SurfaceCard,
-  TagBadge,
   TOPIC_LABELS,
 } from '../../shared/components/SwissUI';
+import { getTopicIllustration } from '../../shared/assets';
 
 interface LessonPlayerScreenProps {
   module: ModuleItem;
@@ -51,12 +54,12 @@ interface LessonPlayerScreenProps {
 }
 
 const STEP_KIND_LABEL: Record<LessonStep['kind'], string> = {
-  concept: 'KONSEPT',
-  multiple_choice: 'SORU / ANALİZ',
-  output_predict: 'ÇIKTI TAHMİNİ',
-  code_write: 'KOD YAZ',
-  sql_write: 'SQL YAZ',
-  architecture_sort: 'MİMARİ KATMAN',
+  concept: 'Konsept',
+  multiple_choice: 'Analiz',
+  output_predict: 'Çıktı Tahmini',
+  code_write: 'Kod Yaz',
+  sql_write: 'SQL Yaz',
+  architecture_sort: 'Mimari',
 };
 
 export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) {
@@ -68,7 +71,6 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
   const [earnedXp, setEarnedXp] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
 
-  // Per-step interactive state
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [codeDraft, setCodeDraft] = useState('');
   const [showHint, setShowHint] = useState(false);
@@ -76,7 +78,6 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
   const [checked, setChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  // Architecture sort state
   const [activeArchItemId, setActiveArchItemId] = useState<string | null>(null);
   const [archMapping, setArchMapping] = useState<Record<string, string>>({});
 
@@ -201,20 +202,13 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
     }
   };
 
-  const handleInsertToken = (token: string) => {
-    setCodeDraft((prev) => {
-      const trimmed = prev.trimEnd();
-      return trimmed.length === 0 ? token : `${trimmed}\n${token}`;
-    });
-  };
-
   if (finished) {
     return (
       <View style={[styles.finishScreen, { backgroundColor: palette.bg }]}>
-        <View style={[styles.finishIconBox, { borderColor: palette.borderStrong }]}>
-          <CheckCircle2 size={36} color={palette.textPrimary} strokeWidth={1.8} />
+        <View style={[styles.finishCircle, { backgroundColor: palette.sageBg }]}>
+          <CheckCircle2 size={42} color={palette.primary} strokeWidth={1.9} />
         </View>
-        <TagBadge label="MODÜL TAMAMLANDI" tone="inverse" />
+        <SoftBadge label="Modül Tamamlandı" tone="sage" />
         <Text
           style={[
             TYPOGRAPHY.display,
@@ -229,28 +223,28 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
             { color: palette.textSecondary, textAlign: 'center', marginTop: 8 },
           ]}
         >
-          Adımlar işlendi ve ilerlemeniz kaydedildi.
+          İlerlemeniz kaydedildi ve bir sonraki adım açıldı.
         </Text>
 
         <View style={styles.finishStatsRow}>
-          <SurfaceCard style={styles.finishStatCard}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>KAZANILAN XP</Text>
-            <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 4 }]}>
+          <SoftCard style={styles.finishStatCard}>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>Kazanılan XP</Text>
+            <Text style={[TYPOGRAPHY.display, { color: palette.primary, marginTop: 4 }]}>
               +{earnedXp}
             </Text>
-          </SurfaceCard>
-          <SurfaceCard style={styles.finishStatCard}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>BAŞARI</Text>
+          </SoftCard>
+          <SoftCard style={styles.finishStatCard}>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>Başarı</Text>
             <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 4 }]}>
               {correctCount}/{module.steps.length}
             </Text>
-          </SurfaceCard>
+          </SoftCard>
         </View>
 
-        <PrimaryButton
-          label="Öğrenme Yoluna Dön"
+        <PillButton
+          label="Ana Sayfaya Dön"
           onPress={onExit}
-          style={{ width: '100%', marginTop: 24 }}
+          style={{ width: '100%', marginTop: 28 }}
         />
       </View>
     );
@@ -269,15 +263,19 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
       style={{ flex: 1, backgroundColor: palette.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Top Progress Header */}
-      <View style={[styles.header, { borderBottomColor: palette.border }]}>
-        <Pressable onPress={onExit} style={styles.closeBtn} hitSlop={8}>
-          <X size={20} color={palette.textPrimary} strokeWidth={2} />
+      {/* Airy Top Header */}
+      <View style={styles.header}>
+        <Pressable
+          onPress={onExit}
+          style={[styles.closeCircle, { backgroundColor: palette.surface }]}
+          hitSlop={8}
+        >
+          <X size={18} color={palette.textPrimary} strokeWidth={2} />
         </Pressable>
-        <View style={{ flex: 1, marginHorizontal: 12 }}>
-          <ProgressBar progress={(stepIndex + 1) / module.steps.length} height={4} />
+        <View style={{ flex: 1, marginHorizontal: 14 }}>
+          <ProgressBar progress={(stepIndex + 1) / module.steps.length} height={6} />
         </View>
-        <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, fontFamily: TYPOGRAPHY.mono }]}>
+        <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
           {stepIndex + 1}/{module.steps.length}
         </Text>
       </View>
@@ -289,44 +287,45 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.metaRow}>
-          <TagBadge label={STEP_KIND_LABEL[step.kind]} tone="inverse" />
-          <TagBadge label={TOPIC_LABELS[module.topic]} />
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginLeft: 'auto' }]}>
+          <SoftBadge label={STEP_KIND_LABEL[step.kind]} tone={getTopicTone(module.topic)} />
+          <SoftBadge label={TOPIC_LABELS[module.topic]} tone="neutral" />
+          <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginLeft: 'auto' }]}>
             +{step.xp} XP
           </Text>
         </View>
 
-        <Text style={[TYPOGRAPHY.h1, { color: palette.textPrimary, marginTop: 12 }]}>
+        <Text style={[TYPOGRAPHY.h1, { color: palette.textPrimary, marginTop: 14 }]}>
           {step.title}
         </Text>
 
         {/* CONCEPT STEP */}
         {step.kind === 'concept' ? (
           <View style={styles.sectionStack}>
-            <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, lineHeight: 22 }]}>
+            {stepIndex === 0 ? (
+              <Image
+                source={getTopicIllustration(module.topic)}
+                style={styles.conceptHeroImg}
+                resizeMode="cover"
+              />
+            ) : null}
+
+            <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, lineHeight: 23 }]}>
               {step.body}
             </Text>
 
-            <SurfaceCard>
-              <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 10 }]}>
-                KRİTİK NOKTALAR
+            <SoftCard>
+              <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 12 }]}>
+                ÖNEMLİ NOKTALAR
               </Text>
               {step.keyPoints.map((pt, idx) => (
                 <View key={idx} style={styles.bulletRow}>
-                  <Text
-                    style={[
-                      TYPOGRAPHY.micro,
-                      { color: palette.textPrimary, fontFamily: TYPOGRAPHY.mono, width: 20 },
-                    ]}
-                  >
-                    {String(idx + 1).padStart(2, '0')}
-                  </Text>
+                  <View style={[styles.bulletDot, { backgroundColor: palette.primary }]} />
                   <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, flex: 1 }]}>
                     {pt}
                   </Text>
                 </View>
               ))}
-            </SurfaceCard>
+            </SoftCard>
 
             {step.code ? <CodeBlock code={step.code} language={step.codeLanguage} /> : null}
             {step.ioExample ? <IOComparisonBox io={step.ioExample} /> : null}
@@ -354,7 +353,9 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
               setCodeDraft(text);
               if (checked && !isCorrect) setChecked(false);
             }}
-            onInsertToken={handleInsertToken}
+            onInsertToken={(tok) =>
+              setCodeDraft((prev) => (prev.trim() ? `${prev.trimEnd()}\n${tok}` : tok))
+            }
             onReset={() => {
               setCodeDraft(step.kind === 'sql_write' ? step.starterSql : step.starterCode);
               setChecked(false);
@@ -391,13 +392,10 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
           <View
             style={[
               styles.feedbackBox,
-              {
-                backgroundColor: isCorrect ? palette.successBg : palette.errorBg,
-                borderColor: isCorrect ? palette.successBorder : palette.errorBorder,
-              },
+              { backgroundColor: isCorrect ? palette.successBg : palette.errorBg },
             ]}
           >
-            <View style={styles.feedbackTitleRow}>
+            <View style={styles.rowGap}>
               {isCorrect ? (
                 <CheckCircle2 size={18} color={palette.success} strokeWidth={2.2} />
               ) : (
@@ -409,10 +407,10 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
                   { color: isCorrect ? palette.success : palette.error },
                 ]}
               >
-                {isCorrect ? 'Doğru Çözüm' : 'Tekrar İnceleyin'}
+                {isCorrect ? 'Harika, doğru çözüm' : 'Tekrar deneyelim'}
               </Text>
             </View>
-            <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 6 }]}>
+            <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 8 }]}>
               {step.explanation}
             </Text>
           </View>
@@ -420,45 +418,40 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
 
         {/* INTERVIEW NOTE */}
         {step.interviewNote && (step.kind === 'concept' || checked) ? (
-          <SurfaceCard style={styles.interviewNoteCard}>
-            <View style={styles.feedbackTitleRow}>
-              <BookOpen size={15} color={palette.textPrimary} strokeWidth={2} />
-              <Text style={[TYPOGRAPHY.micro, { color: palette.textPrimary }]}>
-                SENIOR MÜLAKAT NOTU
+          <View style={[styles.noteCard, { backgroundColor: palette.sandBg }]}>
+            <View style={styles.rowGap}>
+              <BookOpen size={15} color={palette.sandText} strokeWidth={2} />
+              <Text style={[TYPOGRAPHY.micro, { color: palette.sandText }]}>
+                MÜLAKAT NOTU
               </Text>
             </View>
-            <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 6 }]}>
+            <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 6 }]}>
               {step.interviewNote}
             </Text>
-          </SurfaceCard>
+          </View>
         ) : null}
       </ScrollView>
 
-      {/* Sticky Bottom Action Bar */}
-      <View
-        style={[
-          styles.bottomBar,
-          { backgroundColor: palette.bg, borderTopColor: palette.border },
-        ]}
-      >
+      {/* Clean Sticky Bottom Bar */}
+      <View style={[styles.bottomBar, { backgroundColor: palette.bg }]}>
         {step.kind === 'concept' ? (
-          <PrimaryButton label="Anladım, Devam Et" onPress={handleCheck} />
+          <PillButton label="Anladım, Devam Et" onPress={handleCheck} />
         ) : checked && isCorrect ? (
-          <PrimaryButton
+          <PillButton
             label={stepIndex + 1 === module.steps.length ? 'Modülü Tamamla' : 'Sonraki Adım'}
             onPress={handleNext}
           />
         ) : (
           <View style={styles.bottomBtnRow}>
             {checked && !isCorrect ? (
-              <PrimaryButton
+              <PillButton
                 label="Geç"
                 variant="outline"
                 onPress={handleNext}
-                style={{ width: 96 }}
+                style={{ width: 92 }}
               />
             ) : null}
-            <PrimaryButton
+            <PillButton
               label={
                 step.kind === 'code_write' || step.kind === 'sql_write'
                   ? 'Çalıştır & Doğrula'
@@ -469,7 +462,7 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
               style={{ flex: 1 }}
               leftIcon={
                 step.kind === 'code_write' || step.kind === 'sql_write' ? (
-                  <Play size={15} color={palette.accentText} strokeWidth={2.2} />
+                  <Play size={14} color={palette.primaryText} fill={palette.primaryText} />
                 ) : undefined
               }
             />
@@ -504,40 +497,37 @@ function ChoiceExerciseView({
           const isRight = checked && idx === step.correctIndex;
           const isWrongChoice = checked && isSelected && idx !== step.correctIndex;
 
-          const borderColor = isRight
-            ? palette.success
-            : isWrongChoice
-              ? palette.error
-              : isSelected
-                ? palette.borderStrong
-                : palette.border;
           const bgColor = isRight
             ? palette.successBg
             : isWrongChoice
               ? palette.errorBg
               : isSelected
-                ? palette.surface
-                : palette.surfaceElevated;
+                ? palette.sageBg
+                : palette.surface;
+          const borderColor = isRight
+            ? palette.success
+            : isWrongChoice
+              ? palette.error
+              : isSelected
+                ? palette.primary
+                : palette.borderSubtle;
 
           return (
             <Pressable
               key={idx}
               onPress={() => onSelect(idx)}
-              style={[styles.optionCard, { borderColor, backgroundColor: bgColor }]}
+              style={[styles.optionCard, { backgroundColor: bgColor, borderColor }]}
             >
               <View
                 style={[
                   styles.optionLetter,
-                  {
-                    borderColor: isSelected ? palette.borderStrong : palette.border,
-                    backgroundColor: isSelected ? palette.accent : 'transparent',
-                  },
+                  { backgroundColor: isSelected ? palette.primary : palette.surfaceSoft },
                 ]}
               >
                 <Text
                   style={[
                     TYPOGRAPHY.micro,
-                    { color: isSelected ? palette.accentText : palette.textMuted },
+                    { color: isSelected ? palette.primaryText : palette.textSecondary },
                   ]}
                 >
                   {letters[idx]}
@@ -584,31 +574,25 @@ function EditorExerciseView({
       {step.kind === 'sql_write' ? (
         <View style={{ gap: 10 }}>
           {step.tables.map((tbl, i) => (
-            <SqlTablePreview key={i} table={tbl} accentLabel="INPUT TABLE" />
+            <SqlTablePreview key={i} table={tbl} accentLabel="GİRDİ TABLOSU" />
           ))}
           <SqlTablePreview table={step.expectedTable} accentLabel="BEKLENEN ÇIKTI" />
         </View>
       ) : null}
 
-      {/* Editor Box */}
-      <View
-        style={[
-          styles.editorBox,
-          { backgroundColor: palette.codeBg, borderColor: palette.borderStrong },
-        ]}
-      >
+      <View style={[styles.editorBox, { backgroundColor: palette.codeBg }]}>
         <View style={[styles.editorToolbar, { borderBottomColor: palette.codeBorder }]}>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-            {step.kind === 'sql_write' ? 'POSTGRESQL EDITOR' : `${step.language.toUpperCase()} EDITOR`}
+          <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>
+            {step.kind === 'sql_write' ? 'POSTGRESQL' : step.language.toUpperCase()}
           </Text>
           <View style={styles.editorActions}>
             <Pressable onPress={onToggleHint} style={styles.miniAction}>
-              <HelpCircle size={13} color={palette.textMuted} />
-              <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>İPUCU</Text>
+              <HelpCircle size={13} color={palette.codeLineNum} />
+              <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>İpucu</Text>
             </Pressable>
             <Pressable onPress={onReset} style={styles.miniAction}>
-              <RotateCcw size={13} color={palette.textMuted} />
-              <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>SIFIRLA</Text>
+              <RotateCcw size={13} color={palette.codeLineNum} />
+              <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>Sıfırla</Text>
             </Pressable>
           </View>
         </View>
@@ -622,14 +606,13 @@ function EditorExerciseView({
           textAlignVertical="top"
           style={[styles.editorInput, { color: palette.codeText }]}
           placeholder="Kodunuzu buraya yazın..."
-          placeholderTextColor={palette.textMuted}
+          placeholderTextColor={palette.codeLineNum}
         />
       </View>
 
-      {/* Quick Insert Tokens */}
       <View>
-        <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 8 }]}>
-          HIZLI EKLE (DOKUN)
+        <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginBottom: 8 }]}>
+          Hızlı ekle
         </Text>
         <View style={styles.tokenWrap}>
           {step.quickTokens.map((tok, i) => (
@@ -638,10 +621,7 @@ function EditorExerciseView({
               onPress={() => onInsertToken(tok)}
               style={({ pressed }) => [
                 styles.tokenChip,
-                {
-                  backgroundColor: pressed ? palette.surfacePressed : palette.surface,
-                  borderColor: palette.border,
-                },
+                { backgroundColor: pressed ? palette.surfacePressed : palette.surface },
               ]}
             >
               <Text style={[TYPOGRAPHY.code, { fontSize: 12, color: palette.textPrimary }]}>
@@ -653,52 +633,37 @@ function EditorExerciseView({
       </View>
 
       {showHint ? (
-        <SurfaceCard>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.warning }]}>İPUCU</Text>
+        <View style={[styles.noteCard, { backgroundColor: palette.sandBg }]}>
+          <Text style={[TYPOGRAPHY.micro, { color: palette.sandText }]}>İPUCU</Text>
           <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 4 }]}>
             {step.hint}
           </Text>
           <Pressable onPress={onFillSolution} style={{ marginTop: 10 }}>
-            <Text
-              style={[
-                TYPOGRAPHY.caption,
-                { color: palette.textMuted, textDecorationLine: 'underline' },
-              ]}
-            >
-              Referans çözümü editöre doldur
+            <Text style={[TYPOGRAPHY.caption, { color: palette.primary, fontWeight: '700' }]}>
+              Referans çözümü editöre yerleştir
             </Text>
           </Pressable>
-        </SurfaceCard>
+        </View>
       ) : null}
 
-      {/* Test Case Results */}
       {validation ? (
-        <SurfaceCard>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 8 }]}>
-            TEST SENARYOLARI ({validation.matchedCount}/{validation.totalGroups} KONTROL)
-          </Text>
-          <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginBottom: 10 }]}>
-            {validation.message}
+        <SoftCard>
+          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 6 }]}>
+            TEST SONUÇLARI ({validation.matchedCount}/{validation.totalGroups})
           </Text>
           {validation.testResults.map((tr, i) => (
-            <View
-              key={i}
-              style={[
-                styles.testCaseRow,
-                { borderTopColor: palette.border },
-              ]}
-            >
-              <View style={styles.feedbackTitleRow}>
+            <View key={i} style={[styles.testRow, { borderTopColor: palette.borderSubtle }]}>
+              <View style={styles.rowGap}>
                 {tr.passed ? (
                   <CheckCircle2 size={14} color={palette.success} />
                 ) : (
                   <AlertCircle size={14} color={palette.error} />
                 )}
-                <Text style={[TYPOGRAPHY.caption, { color: palette.textPrimary, fontWeight: '700' }]}>
+                <Text style={[TYPOGRAPHY.caption, { color: palette.textPrimary, fontWeight: '600' }]}>
                   {tr.label}
                 </Text>
               </View>
-              <Text style={[TYPOGRAPHY.code, { fontSize: 11, color: palette.textMuted, marginTop: 3 }]}>
+              <Text style={[TYPOGRAPHY.code, { fontSize: 11, color: palette.textMuted, marginTop: 4 }]}>
                 IN: {tr.input}
               </Text>
               <Text style={[TYPOGRAPHY.code, { fontSize: 11, color: palette.textSecondary }]}>
@@ -706,7 +671,7 @@ function EditorExerciseView({
               </Text>
             </View>
           ))}
-        </SurfaceCard>
+        </SoftCard>
       ) : null}
     </View>
   );
@@ -732,12 +697,9 @@ function ArchitectureExerciseView({
   return (
     <View style={styles.sectionStack}>
       <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary }]}>{step.prompt}</Text>
-      <TagBadge label={step.scenario} />
 
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-        1. DOSYAYI SEÇİN
-      </Text>
-      <View style={{ gap: 8 }}>
+      <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>1. Dosyayı seçin</Text>
+      <View style={{ gap: 10 }}>
         {step.items.map((item) => {
           const isActive = activeItemId === item.id;
           const assigned = mapping[item.id];
@@ -751,14 +713,14 @@ function ArchitectureExerciseView({
               style={[
                 styles.archItemCard,
                 {
-                  backgroundColor: isActive ? palette.surface : palette.surfaceElevated,
+                  backgroundColor: isActive ? palette.sageBg : palette.surface,
                   borderColor: isWrong
                     ? palette.error
                     : isRight
                       ? palette.success
                       : isActive
-                        ? palette.borderStrong
-                        : palette.border,
+                        ? palette.primary
+                        : palette.borderSubtle,
                 },
               ]}
             >
@@ -766,21 +728,21 @@ function ArchitectureExerciseView({
                 <Text style={[TYPOGRAPHY.code, { fontWeight: '700', color: palette.textPrimary }]}>
                   {item.label}
                 </Text>
-                <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginTop: 2 }]}>
+                <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginTop: 3 }]}>
                   {item.detail}
                 </Text>
               </View>
-              <TagBadge
-                label={assigned ? `${assigned}/` : 'SEÇİLMEDİ'}
-                tone={assigned ? 'inverse' : 'neutral'}
+              <SoftBadge
+                label={assigned ? `${assigned}/` : 'Seç'}
+                tone={assigned ? 'sage' : 'neutral'}
               />
             </Pressable>
           );
         })}
       </View>
 
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginTop: 6 }]}>
-        2. HEDEF KATMANA YERLEŞTİRİN
+      <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginTop: 4 }]}>
+        2. Hedef katmana dokunun
       </Text>
       <View style={styles.layerGrid}>
         {step.layers.map((layer) => (
@@ -789,14 +751,11 @@ function ArchitectureExerciseView({
             onPress={() => onAssignLayer(layer.id)}
             style={({ pressed }) => [
               styles.layerCard,
-              {
-                backgroundColor: pressed ? palette.surfacePressed : palette.surface,
-                borderColor: palette.borderStrong,
-              },
+              { backgroundColor: pressed ? palette.sageBg : palette.surface },
             ]}
           >
-            <View style={styles.feedbackTitleRow}>
-              <Layers size={14} color={palette.textPrimary} />
+            <View style={styles.rowGap}>
+              <Layers size={14} color={palette.primary} />
               <Text style={[TYPOGRAPHY.code, { fontWeight: '700', color: palette.textPrimary }]}>
                 {layer.name}
               </Text>
@@ -817,13 +776,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
   },
-  closeBtn: {
-    padding: 4,
+  closeCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: 4,
     paddingBottom: 36,
   },
   metaRow: {
@@ -832,48 +795,56 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionStack: {
-    marginTop: SPACING.lg,
-    gap: SPACING.md,
+    marginTop: 18,
+    gap: 16,
+  },
+  conceptHeroImg: {
+    width: '100%',
+    height: 156,
+    borderRadius: RADIUS.lg,
   },
   bulletRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 8,
+    gap: 10,
+    marginBottom: 10,
+  },
+  bulletDot: {
+    width: 7,
+    height: 7,
+    borderRadius: RADIUS.pill,
+    marginTop: 7,
   },
   optionCard: {
     borderWidth: 1.5,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
   },
   optionLetter: {
-    width: 24,
-    height: 24,
-    borderRadius: RADIUS.xs,
-    borderWidth: 1,
+    width: 26,
+    height: 26,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
   },
   editorBox: {
-    borderWidth: 1.5,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.md,
     overflow: 'hidden',
   },
   editorToolbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
   editorActions: {
     flexDirection: 'row',
-    gap: 14,
+    gap: 16,
   },
   miniAction: {
     flexDirection: 'row',
@@ -884,8 +855,8 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 13,
     lineHeight: 20,
-    minHeight: 132,
-    padding: SPACING.md,
+    minHeight: 136,
+    padding: 16,
   },
   tokenWrap: {
     flexDirection: 'row',
@@ -893,20 +864,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tokenChip: {
-    borderWidth: 1,
-    borderRadius: RADIUS.xs,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  testCaseRow: {
+  testRow: {
     borderTopWidth: 1,
     paddingTop: 10,
     marginTop: 8,
   },
   archItemCard: {
     borderWidth: 1.5,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -918,28 +888,27 @@ const styles = StyleSheet.create({
   },
   layerCard: {
     width: '48%',
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 14,
   },
   feedbackBox: {
-    marginTop: SPACING.lg,
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    marginTop: 18,
+    borderRadius: RADIUS.md,
+    padding: 16,
   },
-  feedbackTitleRow: {
+  noteCard: {
+    marginTop: 14,
+    borderRadius: RADIUS.md,
+    padding: 16,
+  },
+  rowGap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
   },
-  interviewNoteCard: {
-    marginTop: SPACING.md,
-  },
   bottomBar: {
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderTopWidth: 1,
+    paddingVertical: 14,
   },
   bottomBtnRow: {
     flexDirection: 'row',
@@ -951,18 +920,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  finishIconBox: {
-    width: 72,
-    height: 72,
-    borderRadius: RADIUS.md,
-    borderWidth: 1.5,
+  finishCircle: {
+    width: 84,
+    height: 84,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
   finishStatsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
     width: '100%',
     marginTop: 28,
   },

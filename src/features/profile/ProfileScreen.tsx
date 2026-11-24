@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AlertCircle, Flame, Moon, RotateCcw, Sun, Zap } from 'lucide-react-native';
 import { useTheme } from '../../core/theme/ThemeContext';
-import { RADIUS, SPACING, TYPOGRAPHY } from '../../core/theme/tokens';
+import { RADIUS, SPACING, ThemeMode, TYPOGRAPHY } from '../../core/theme/tokens';
 import { useProgress } from '../../core/storage/progressStore';
 import {
   ALL_MODULES,
@@ -12,13 +12,13 @@ import {
   SANDBOX_CHALLENGES,
 } from '../../data/curriculum';
 import {
+  GoalArcGauge,
+  PillTabs,
   ProgressBar,
-  SegmentControl,
-  SurfaceCard,
-  TagBadge,
+  SoftBadge,
+  SoftCard,
   TOPIC_LABELS,
 } from '../../shared/components/SwissUI';
-import { ThemeMode } from '../../core/theme/tokens';
 
 interface ProfileScreenProps {
   onStartModule: (moduleId: string) => void;
@@ -59,106 +59,99 @@ export function ProfileScreen({ onStartModule }: ProfileScreenProps) {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>PROFİL & ANALİTİK</Text>
-      <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 4 }]}>
+      <Text style={[TYPOGRAPHY.body, { color: palette.textMuted }]}>Profil & Analitik</Text>
+      <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 2 }]}>
         Gelişim Özeti
       </Text>
 
-      {/* KPI Grid */}
+      {/* Pastel Stat Row */}
       <View style={styles.kpiGrid}>
-        <SurfaceCard style={styles.kpiCard}>
-          <View style={styles.kpiTop}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>SERİ</Text>
-            <Flame size={14} color={palette.textPrimary} />
-          </View>
-          <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 6 }]}>
+        <View style={[styles.kpiTile, { backgroundColor: palette.peachBg }]}>
+          <Flame size={18} color={palette.peachText} />
+          <Text style={[TYPOGRAPHY.h1, { color: palette.peachText, marginTop: 10 }]}>
             {state.streak} gün
           </Text>
-        </SurfaceCard>
-        <SurfaceCard style={styles.kpiCard}>
-          <View style={styles.kpiTop}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>TOPLAM XP</Text>
-            <Zap size={14} color={palette.textPrimary} />
-          </View>
-          <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 6 }]}>
-            {state.xp}
+          <Text style={[TYPOGRAPHY.caption, { color: palette.peachText, opacity: 0.8 }]}>
+            Günlük Seri
           </Text>
-        </SurfaceCard>
+        </View>
+        <View style={[styles.kpiTile, { backgroundColor: palette.sageBg }]}>
+          <Zap size={18} color={palette.sageText} />
+          <Text style={[TYPOGRAPHY.h1, { color: palette.sageText, marginTop: 10 }]}>
+            {state.xp} XP
+          </Text>
+          <Text style={[TYPOGRAPHY.caption, { color: palette.sageText, opacity: 0.8 }]}>
+            Toplam Puan
+          </Text>
+        </View>
       </View>
 
-      {/* Readiness Score */}
-      <SurfaceCard elevated style={{ marginTop: 12 }}>
-        <View style={styles.kpiTop}>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-            SENIOR MÜLAKAT HAZIRLIK SKORU
-          </Text>
-          <TagBadge label={`%${readinessScore}`} tone="inverse" />
+      {/* Senior Readiness Card */}
+      <SoftCard style={{ marginTop: 16 }}>
+        <View style={styles.readinessRow}>
+          <GoalArcGauge
+            progress={readinessScore / 100}
+            centerValue={`%${readinessScore}`}
+            centerLabel="Hazırlık"
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+              Mülakat Hazırlığı
+            </Text>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary, marginTop: 6 }]}>
+              Dersler: {state.completedStepIds.length}/{totalCurriculumSteps}
+            </Text>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary, marginTop: 2 }]}>
+              Kod Lab: {state.completedSandboxIds.length}/{SANDBOX_CHALLENGES.length}
+            </Text>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary, marginTop: 2 }]}>
+              Mülakat: {state.masteredInterviewIds.length}/{INTERVIEW_BANK.length}
+            </Text>
+          </View>
         </View>
-        <View style={{ marginTop: 12 }}>
-          <ProgressBar progress={readinessScore / 100} height={6} />
-        </View>
-        <View style={styles.breakdownRow}>
-          <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary }]}>
-            Ders: {state.completedStepIds.length}/{totalCurriculumSteps}
-          </Text>
-          <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary }]}>
-            Lab: {state.completedSandboxIds.length}/{SANDBOX_CHALLENGES.length}
-          </Text>
-          <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary }]}>
-            Mülakat: {state.masteredInterviewIds.length}/{INTERVIEW_BANK.length}
-          </Text>
-        </View>
-      </SurfaceCard>
+      </SoftCard>
 
       {/* Topic Mastery */}
-      <SurfaceCard style={{ marginTop: 16 }}>
-        <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 14 }]}>
-          KONU BAZLI USTALIK
+      <SoftCard style={{ marginTop: 16 }}>
+        <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginBottom: 16 }]}>
+          Konu Ustalığı
         </Text>
-        <View style={{ gap: 14 }}>
+        <View style={{ gap: 16 }}>
           {topicStats.map((stat) => (
             <View key={stat.topic}>
-              <View style={styles.kpiTop}>
+              <View style={styles.rowBetween}>
                 <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.textPrimary }]}>
                   {TOPIC_LABELS[stat.topic]}
                 </Text>
-                <Text
-                  style={[
-                    TYPOGRAPHY.caption,
-                    { color: palette.textMuted, fontFamily: TYPOGRAPHY.mono },
-                  ]}
-                >
-                  {stat.completed}/{stat.total} (%{Math.round(stat.ratio * 100)})
+                <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
+                  %{Math.round(stat.ratio * 100)}
                 </Text>
               </View>
-              <View style={{ marginTop: 6 }}>
-                <ProgressBar progress={stat.ratio} height={4} />
+              <View style={{ marginTop: 7 }}>
+                <ProgressBar progress={stat.ratio} height={6} />
               </View>
             </View>
           ))}
         </View>
-      </SurfaceCard>
+      </SoftCard>
 
       {/* Mistakes to Review */}
       {mistakeEntries.length > 0 ? (
-        <SurfaceCard style={{ marginTop: 16 }}>
-          <View style={[styles.kpiTop, { marginBottom: 10 }]}>
+        <SoftCard style={{ marginTop: 16 }}>
+          <View style={[styles.rowBetween, { marginBottom: 12 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <AlertCircle size={15} color={palette.error} />
-              <Text style={[TYPOGRAPHY.micro, { color: palette.error }]}>
-                TEKRAR EDİLECEK HATALAR ({mistakeEntries.length})
+              <AlertCircle size={16} color={palette.error} />
+              <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+                Tekrar Edilecekler ({mistakeEntries.length})
               </Text>
             </View>
           </View>
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: 10 }}>
             {mistakeEntries.slice(0, 5).map(({ module, step }) => (
               <Pressable
                 key={step.id}
                 onPress={() => onStartModule(module.id)}
-                style={[
-                  styles.mistakeRow,
-                  { borderColor: palette.border, backgroundColor: palette.surfaceElevated },
-                ]}
+                style={[styles.mistakeRow, { backgroundColor: palette.bg }]}
               >
                 <View style={{ flex: 1 }}>
                   <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.textPrimary }]}>
@@ -168,54 +161,51 @@ export function ProfileScreen({ onStartModule }: ProfileScreenProps) {
                     {module.title}
                   </Text>
                 </View>
-                <TagBadge label="TEKRAR" />
+                <SoftBadge label="Tekrar" tone="peach" />
               </Pressable>
             ))}
           </View>
-        </SurfaceCard>
+        </SoftCard>
       ) : null}
 
       {/* Appearance */}
-      <SurfaceCard style={{ marginTop: 16 }}>
-        <View style={[styles.kpiTop, { marginBottom: 12 }]}>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>GÖRÜNÜM (TEMA)</Text>
+      <SoftCard style={{ marginTop: 16 }}>
+        <View style={[styles.rowBetween, { marginBottom: 14 }]}>
+          <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>Tema</Text>
           {mode === 'dark' ? (
-            <Moon size={15} color={palette.textPrimary} />
+            <Moon size={16} color={palette.textSecondary} />
           ) : (
-            <Sun size={15} color={palette.textPrimary} />
+            <Sun size={16} color={palette.textSecondary} />
           )}
         </View>
-        <SegmentControl<ThemeMode>
+        <PillTabs<ThemeMode>
           value={mode}
           onChange={setThemeMode}
           options={[
-            { label: 'Beyaz (Light)', value: 'light' },
-            { label: 'Karanlık (Dark)', value: 'dark' },
+            { label: 'Açık Tema', value: 'light' },
+            { label: 'Karanlık Tema', value: 'dark' },
           ]}
         />
-      </SurfaceCard>
+      </SoftCard>
 
-      {/* Reset & App Info */}
-      <View style={styles.footerSection}>
-        <Pressable
-          onPress={confirmReset}
-          style={[styles.resetBtn, { borderColor: palette.border }]}
-        >
-          <RotateCcw size={15} color={palette.error} />
-          <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.error }]}>
-            İlerlemeyi Sıfırla
-          </Text>
-        </Pressable>
-
-        <Text
-          style={[
-            TYPOGRAPHY.micro,
-            { color: palette.textMuted, textAlign: 'center', marginTop: 16 },
-          ]}
-        >
-          KODEX v1.0.0 · {ALL_MODULES.length} MODÜL · SWISS MINIMALIST EDITION
+      <Pressable
+        onPress={confirmReset}
+        style={[styles.resetBtn, { backgroundColor: palette.surface }]}
+      >
+        <RotateCcw size={15} color={palette.error} />
+        <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.error }]}>
+          İlerlemeyi Sıfırla
         </Text>
-      </View>
+      </Pressable>
+
+      <Text
+        style={[
+          TYPOGRAPHY.caption,
+          { color: palette.textMuted, textAlign: 'center', marginTop: 18 },
+        ]}
+      >
+        KODEX v2.0.0 · {ALL_MODULES.length} Modül
+      </Text>
     </ScrollView>
   );
 }
@@ -229,36 +219,34 @@ const styles = StyleSheet.create({
   kpiGrid: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 18,
+    marginTop: 20,
   },
-  kpiCard: {
+  kpiTile: {
     flex: 1,
+    borderRadius: RADIUS.lg,
+    padding: 18,
   },
-  kpiTop: {
+  readinessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
+  rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  breakdownRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
   mistakeRow: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  footerSection: {
-    marginTop: 20,
-  },
   resetBtn: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    paddingVertical: 13,
+    marginTop: 18,
+    borderRadius: RADIUS.pill,
+    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

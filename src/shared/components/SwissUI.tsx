@@ -8,6 +8,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../core/theme/ThemeContext';
 import { RADIUS, SPACING, TYPOGRAPHY } from '../../core/theme/tokens';
 import { SqlTableSample, TestCaseIO, TopicId } from '../../data/curriculum/types';
@@ -20,14 +21,12 @@ export const TOPIC_LABELS: Record<TopicId, string> = {
   architecture: 'Mimari',
 };
 
-export function SurfaceCard({
+export function SoftCard({
   children,
   style,
-  elevated = false,
 }: {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  elevated?: boolean;
 }) {
   const { palette } = useTheme();
   return (
@@ -35,8 +34,8 @@ export function SurfaceCard({
       style={[
         styles.card,
         {
-          backgroundColor: elevated ? palette.surfaceElevated : palette.surface,
-          borderColor: palette.border,
+          backgroundColor: palette.surface,
+          borderColor: palette.borderSubtle,
         },
         style,
       ]}
@@ -46,85 +45,119 @@ export function SurfaceCard({
   );
 }
 
-export function PrimaryButton({
+/** Alias kept for clean imports */
+export const SurfaceCard = SoftCard;
+
+export function PillButton({
   label,
   onPress,
-  variant = 'solid',
+  variant = 'primary',
   disabled = false,
   style,
   leftIcon,
+  compact = false,
 }: {
   label: string;
   onPress: () => void;
-  variant?: 'solid' | 'outline' | 'ghost';
+  variant?: 'primary' | 'soft' | 'outline' | 'light';
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   leftIcon?: React.ReactNode;
+  compact?: boolean;
 }) {
   const { palette } = useTheme();
   const bg =
-    variant === 'solid'
-      ? palette.accent
-      : variant === 'outline'
-        ? 'transparent'
-        : 'transparent';
+    variant === 'primary'
+      ? palette.primary
+      : variant === 'soft'
+        ? palette.sageBg
+        : variant === 'light'
+          ? '#FFFFFF'
+          : 'transparent';
   const borderColor =
-    variant === 'solid'
-      ? palette.accent
-      : variant === 'outline'
-        ? palette.borderStrong
-        : 'transparent';
-  const textColor = variant === 'solid' ? palette.accentText : palette.textPrimary;
+    variant === 'outline' ? palette.border : 'transparent';
+  const textColor =
+    variant === 'primary'
+      ? palette.primaryText
+      : variant === 'soft'
+        ? palette.sageText
+        : variant === 'light'
+          ? '#1E4D3B'
+          : palette.textPrimary;
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
-        styles.button,
+        styles.pillBtn,
+        compact && styles.pillBtnCompact,
         {
           backgroundColor: bg,
           borderColor,
-          opacity: disabled ? 0.38 : pressed ? 0.82 : 1,
+          borderWidth: variant === 'outline' ? 1 : 0,
+          opacity: disabled ? 0.4 : pressed ? 0.84 : 1,
         },
         style,
       ]}
     >
-      {leftIcon ? <View style={{ marginRight: 8 }}>{leftIcon}</View> : null}
-      <Text style={[TYPOGRAPHY.bodyStrong, { color: textColor }]}>{label}</Text>
+      {leftIcon ? <View style={{ marginRight: 7 }}>{leftIcon}</View> : null}
+      <Text style={[compact ? TYPOGRAPHY.caption : TYPOGRAPHY.bodyStrong, { color: textColor, fontWeight: '600' }]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
-export function TagBadge({
+export const PrimaryButton = PillButton;
+
+export function SoftBadge({
   label,
-  tone = 'neutral',
+  tone = 'sage',
 }: {
   label: string;
-  tone?: 'neutral' | 'success' | 'error' | 'warning' | 'inverse';
+  tone?: 'sage' | 'peach' | 'sand' | 'slate' | 'neutral' | 'success' | 'error';
 }) {
   const { palette } = useTheme();
-  const map = {
-    neutral: { bg: palette.surface, border: palette.border, text: palette.textSecondary },
-    success: { bg: palette.successBg, border: palette.successBorder, text: palette.success },
-    error: { bg: palette.errorBg, border: palette.errorBorder, text: palette.error },
-    warning: { bg: palette.warningBg, border: palette.warningBorder, text: palette.warning },
-    inverse: { bg: palette.accent, border: palette.accent, text: palette.accentText },
+  const colors = {
+    sage: { bg: palette.sageBg, text: palette.sageText },
+    peach: { bg: palette.peachBg, text: palette.peachText },
+    sand: { bg: palette.sandBg, text: palette.sandText },
+    slate: { bg: palette.slateBg, text: palette.slateText },
+    neutral: { bg: palette.surfaceSoft, text: palette.textSecondary },
+    success: { bg: palette.successBg, text: palette.success },
+    error: { bg: palette.errorBg, text: palette.error },
   }[tone];
 
   return (
-    <View style={[styles.badge, { backgroundColor: map.bg, borderColor: map.border }]}>
-      <Text style={[TYPOGRAPHY.micro, { color: map.text }]}>{label.toUpperCase()}</Text>
+    <View style={[styles.badge, { backgroundColor: colors.bg }]}>
+      <Text style={[TYPOGRAPHY.micro, { color: colors.text }]}>{label}</Text>
     </View>
   );
 }
 
+export function getTopicTone(topic: TopicId): 'sage' | 'peach' | 'sand' | 'slate' {
+  switch (topic) {
+    case 'nodejs':
+      return 'sage';
+    case 'sql':
+      return 'peach';
+    case 'drizzle':
+      return 'sand';
+    case 'typescript':
+    case 'architecture':
+      return 'slate';
+  }
+}
+
 export function ProgressBar({
   progress,
-  height = 4,
+  height = 6,
+  color,
 }: {
   progress: number;
   height?: number;
+  color?: string;
 }) {
   const { palette } = useTheme();
   const clamped = Math.max(0, Math.min(1, progress));
@@ -133,8 +166,8 @@ export function ProgressBar({
       style={{
         height,
         width: '100%',
-        backgroundColor: palette.border,
-        borderRadius: RADIUS.full,
+        backgroundColor: palette.surfaceSoft,
+        borderRadius: RADIUS.pill,
         overflow: 'hidden',
       }}
     >
@@ -142,9 +175,63 @@ export function ProgressBar({
         style={{
           height: '100%',
           width: `${Math.round(clamped * 100)}%`,
-          backgroundColor: palette.accent,
+          backgroundColor: color ?? palette.primary,
+          borderRadius: RADIUS.pill,
         }}
       />
+    </View>
+  );
+}
+
+/**
+ * Wellywise-inspired semi-circular SVG goal arc gauge.
+ */
+export function GoalArcGauge({
+  progress,
+  centerValue,
+  centerLabel,
+}: {
+  progress: number;
+  centerValue: string;
+  centerLabel: string;
+}) {
+  const { palette } = useTheme();
+  const clamped = Math.max(0.04, Math.min(1, progress));
+  const width = 128;
+  const height = 74;
+  const radius = 50;
+  const cx = 64;
+  const cy = 62;
+  const circumference = Math.PI * radius;
+  const dashOffset = circumference * (1 - clamped);
+  const arcPath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`;
+
+  return (
+    <View style={{ width, height, alignItems: 'center', justifyContent: 'flex-end' }}>
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+        <Path
+          d={arcPath}
+          stroke={palette.surfaceSoft}
+          strokeWidth={11}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Path
+          d={arcPath}
+          stroke={palette.coral}
+          strokeWidth={11}
+          strokeLinecap="round"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={dashOffset}
+          fill="none"
+        />
+      </Svg>
+      <Text style={[TYPOGRAPHY.h2, { color: palette.textPrimary, fontWeight: '700' }]}>
+        {centerValue}
+      </Text>
+      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginTop: 1 }]}>
+        {centerLabel}
+      </Text>
     </View>
   );
 }
@@ -162,19 +249,14 @@ export function CodeBlock({
   const lines = code.trimEnd().split('\n');
 
   return (
-    <View
-      style={[
-        styles.codeWrapper,
-        { backgroundColor: palette.codeBg, borderColor: palette.codeBorder },
-      ]}
-    >
+    <View style={[styles.codeWrapper, { backgroundColor: palette.codeBg }]}>
       {language || title ? (
         <View style={[styles.codeHeader, { borderBottomColor: palette.codeBorder }]}>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
+          <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>
             {(title ?? language ?? 'CODE').toUpperCase()}
           </Text>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-            {lines.length} SATIR
+          <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>
+            {lines.length} satır
           </Text>
         </View>
       ) : null}
@@ -206,11 +288,11 @@ export function SqlTablePreview({
     <View
       style={[
         styles.tableWrapper,
-        { backgroundColor: palette.codeBg, borderColor: palette.codeBorder },
+        { backgroundColor: palette.surface, borderColor: palette.border },
       ]}
     >
-      <View style={[styles.tableHeaderBar, { borderBottomColor: palette.codeBorder }]}>
-        <Text style={[TYPOGRAPHY.micro, { color: palette.textPrimary }]}>
+      <View style={[styles.tableHeaderBar, { backgroundColor: palette.surfaceSoft }]}>
+        <Text style={[TYPOGRAPHY.micro, { color: palette.textPrimary, fontFamily: TYPOGRAPHY.mono }]}>
           {table.tableName}
         </Text>
         {accentLabel ? (
@@ -219,12 +301,9 @@ export function SqlTablePreview({
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View>
-          <View style={[styles.tableRow, { borderBottomColor: palette.codeBorder }]}>
+          <View style={[styles.tableRow, { borderBottomColor: palette.border }]}>
             {table.columns.map((col, idx) => (
-              <Text
-                key={idx}
-                style={[styles.tableCellHeader, { color: palette.textMuted }]}
-              >
+              <Text key={idx} style={[styles.tableCellHeader, { color: palette.textMuted }]}>
                 {col}
               </Text>
             ))}
@@ -236,15 +315,12 @@ export function SqlTablePreview({
                 styles.tableRow,
                 {
                   borderBottomColor:
-                    rIdx === table.rows.length - 1 ? 'transparent' : palette.codeBorder,
+                    rIdx === table.rows.length - 1 ? 'transparent' : palette.borderSubtle,
                 },
               ]}
             >
               {row.map((cell, cIdx) => (
-                <Text
-                  key={cIdx}
-                  style={[styles.tableCell, { color: palette.codeText }]}
-                >
+                <Text key={cIdx} style={[styles.tableCell, { color: palette.textPrimary }]}>
                   {cell}
                 </Text>
               ))}
@@ -259,31 +335,27 @@ export function SqlTablePreview({
 export function IOComparisonBox({ io }: { io: TestCaseIO }) {
   const { palette } = useTheme();
   return (
-    <View
-      style={[
-        styles.ioBox,
-        { backgroundColor: palette.codeBg, borderColor: palette.codeBorder },
-      ]}
-    >
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 8 }]}>
-        {io.label.toUpperCase()}
+    <SoftCard style={{ padding: 16 }}>
+      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 10 }]}>
+        {io.label}
       </Text>
-      <View style={styles.ioRow}>
-        <Text style={[styles.ioKey, { color: palette.textMuted }]}>INPUT</Text>
-        <Text style={[TYPOGRAPHY.code, { color: palette.codeText, flex: 1 }]}>{io.input}</Text>
+      <View style={[styles.ioPill, { backgroundColor: palette.surfaceSoft }]}>
+        <Text style={[styles.ioKey, { color: palette.textMuted }]}>GİRDİ</Text>
+        <Text style={[TYPOGRAPHY.code, { color: palette.textPrimary, flex: 1, fontSize: 12 }]}>
+          {io.input}
+        </Text>
       </View>
-      <View style={[styles.ioDivider, { backgroundColor: palette.codeBorder }]} />
-      <View style={styles.ioRow}>
-        <Text style={[styles.ioKey, { color: palette.success }]}>OUTPUT</Text>
-        <Text style={[TYPOGRAPHY.code, { color: palette.codeText, flex: 1 }]}>
+      <View style={[styles.ioPill, { backgroundColor: palette.sageBg, marginTop: 8 }]}>
+        <Text style={[styles.ioKey, { color: palette.sageText }]}>ÇIKTI</Text>
+        <Text style={[TYPOGRAPHY.code, { color: palette.sageText, flex: 1, fontSize: 12 }]}>
           {io.expectedOutput}
         </Text>
       </View>
-    </View>
+    </SoftCard>
   );
 }
 
-export function SegmentControl<T extends string | number>({
+export function PillTabs<T extends string | number>({
   options,
   value,
   onChange,
@@ -294,12 +366,7 @@ export function SegmentControl<T extends string | number>({
 }) {
   const { palette } = useTheme();
   return (
-    <View
-      style={[
-        styles.segmentContainer,
-        { backgroundColor: palette.surface, borderColor: palette.border },
-      ]}
-    >
+    <View style={[styles.tabRow, { backgroundColor: palette.surfaceSoft }]}>
       {options.map((opt) => {
         const selected = opt.value === value;
         return (
@@ -307,15 +374,15 @@ export function SegmentControl<T extends string | number>({
             key={String(opt.value)}
             onPress={() => onChange(opt.value)}
             style={[
-              styles.segmentItem,
-              selected && { backgroundColor: palette.accent },
+              styles.tabPill,
+              selected && { backgroundColor: palette.surface },
             ]}
           >
             <Text
               style={[
                 TYPOGRAPHY.caption,
                 {
-                  color: selected ? palette.accentText : palette.textSecondary,
+                  color: selected ? palette.textPrimary : palette.textMuted,
                   fontWeight: selected ? '700' : '500',
                 },
               ]}
@@ -330,43 +397,46 @@ export function SegmentControl<T extends string | number>({
   );
 }
 
+export const SegmentControl = PillTabs;
+
 const styles = StyleSheet.create({
   card: {
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderRadius: RADIUS.md,
     padding: SPACING.lg,
   },
-  button: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: SPACING.lg,
+  pillBtn: {
+    minHeight: 50,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 22,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pillBtnCompact: {
+    minHeight: 36,
+    paddingHorizontal: 16,
+  },
   badge: {
-    borderWidth: 1,
-    borderRadius: RADIUS.xs,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     alignSelf: 'flex-start',
   },
   codeWrapper: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.md,
     overflow: 'hidden',
   },
   codeHeader: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   codeBody: {
-    padding: SPACING.md,
+    padding: 16,
     minWidth: '100%',
   },
   codeLine: {
@@ -374,22 +444,21 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   lineNum: {
-    width: 26,
+    width: 24,
     fontSize: 12,
     fontFamily: 'monospace',
     lineHeight: 20,
-    marginRight: 8,
+    marginRight: 10,
     textAlign: 'right',
   },
   tableWrapper: {
     borderWidth: 1,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.md,
     overflow: 'hidden',
   },
   tableHeaderBar: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -399,53 +468,44 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   tableCellHeader: {
-    minWidth: 96,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
+    minWidth: 94,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'monospace',
   },
   tableCell: {
-    minWidth: 96,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 7,
+    minWidth: 94,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     fontSize: 12,
     fontFamily: 'monospace',
   },
-  ioBox: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
-  },
-  ioRow: {
+  ioPill: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
+    padding: 12,
+    borderRadius: RADIUS.sm,
   },
   ioKey: {
-    width: 56,
+    width: 44,
     fontSize: 11,
     fontWeight: '700',
-    fontFamily: 'monospace',
-    paddingTop: 3,
+    paddingTop: 2,
   },
-  ioDivider: {
-    height: 1,
-    marginVertical: 8,
-  },
-  segmentContainer: {
+  tabRow: {
     flexDirection: 'row',
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: 3,
-    gap: 3,
+    borderRadius: RADIUS.pill,
+    padding: 4,
+    gap: 4,
   },
-  segmentItem: {
+  tabPill: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderRadius: RADIUS.xs + 2,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

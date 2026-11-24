@@ -3,7 +3,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   AlertTriangle,
   Check,
-  CheckCircle2,
   ChevronRight,
   Eye,
   EyeOff,
@@ -17,15 +16,16 @@ import { useProgress } from '../../core/storage/progressStore';
 import { INTERVIEW_BANK, TopicId } from '../../data/curriculum';
 import {
   CodeBlock,
-  PrimaryButton,
+  getTopicTone,
+  PillButton,
   ProgressBar,
-  SurfaceCard,
-  TagBadge,
+  SoftBadge,
+  SoftCard,
   TOPIC_LABELS,
 } from '../../shared/components/SwissUI';
 
 type TopicFilter = 'all' | TopicId;
-const ROUND_SECONDS = 180; // 3 minutes senior answer window
+const ROUND_SECONDS = 180;
 
 export function InterviewScreen() {
   const { palette } = useTheme();
@@ -104,29 +104,22 @@ export function InterviewScreen() {
     >
       <View style={styles.headerRow}>
         <View>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-            SENIOR MÜLAKAT SİMÜLATÖRÜ
-          </Text>
+          <Text style={[TYPOGRAPHY.body, { color: palette.textMuted }]}>Mülakat Simülatörü</Text>
           <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 2 }]}>
-            Mülakat Hazırlık
+            Senior Hazırlık
           </Text>
         </View>
-        <View style={styles.readinessBox}>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>HAZIRLIK</Text>
-          <Text style={[TYPOGRAPHY.h2, { color: palette.textPrimary }]}>
-            {masteredCount}/{INTERVIEW_BANK.length}
-          </Text>
-        </View>
+        <SoftBadge label={`${masteredCount}/${INTERVIEW_BANK.length} Hazır`} tone="sage" />
       </View>
 
-      <View style={{ marginTop: 10 }}>
-        <ProgressBar progress={masteredCount / Math.max(1, INTERVIEW_BANK.length)} height={4} />
+      <View style={{ marginTop: 14 }}>
+        <ProgressBar progress={masteredCount / Math.max(1, INTERVIEW_BANK.length)} height={6} />
       </View>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ marginTop: 16 }}
+        style={{ marginTop: 18 }}
         contentContainerStyle={{ gap: 8 }}
       >
         {filters.map((f) => {
@@ -137,16 +130,13 @@ export function InterviewScreen() {
               onPress={() => setFilter(f.value)}
               style={[
                 styles.filterPill,
-                {
-                  backgroundColor: active ? palette.accent : palette.surface,
-                  borderColor: active ? palette.accent : palette.border,
-                },
+                { backgroundColor: active ? palette.primary : palette.surface },
               ]}
             >
               <Text
                 style={[
                   TYPOGRAPHY.caption,
-                  { color: active ? palette.accentText : palette.textSecondary, fontWeight: '600' },
+                  { color: active ? palette.primaryText : palette.textSecondary, fontWeight: '600' },
                 ]}
               >
                 {f.label}
@@ -156,12 +146,12 @@ export function InterviewScreen() {
         })}
       </ScrollView>
 
-      {/* Mock Interview Timer */}
-      <SurfaceCard style={styles.timerCard}>
+      {/* Clean Calm Timer Strip */}
+      <SoftCard style={styles.timerCard}>
         <View style={styles.timerRow}>
           <View>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-              CEVAP ZAMANLAYICISI (3 DK)
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
+              Cevap Süresi (3 dk)
             </Text>
             <Text
               style={[
@@ -179,15 +169,12 @@ export function InterviewScreen() {
           <View style={styles.timerControls}>
             <Pressable
               onPress={() => setTimerRunning((r) => !r)}
-              style={[
-                styles.timerBtn,
-                { backgroundColor: palette.accent, borderColor: palette.accent },
-              ]}
+              style={[styles.circleBtn, { backgroundColor: palette.primary }]}
             >
               {timerRunning ? (
-                <Pause size={16} color={palette.accentText} />
+                <Pause size={16} color={palette.primaryText} />
               ) : (
-                <Play size={16} color={palette.accentText} />
+                <Play size={16} color={palette.primaryText} fill={palette.primaryText} />
               )}
             </Pressable>
             <Pressable
@@ -195,43 +182,39 @@ export function InterviewScreen() {
                 setTimerRunning(false);
                 setSecondsLeft(ROUND_SECONDS);
               }}
-              style={[
-                styles.timerBtn,
-                { backgroundColor: palette.surfaceElevated, borderColor: palette.border },
-              ]}
+              style={[styles.circleBtn, { backgroundColor: palette.surfaceSoft }]}
             >
               <RotateCcw size={16} color={palette.textPrimary} />
             </Pressable>
           </View>
         </View>
-      </SurfaceCard>
+      </SoftCard>
 
       {current ? (
-        <SurfaceCard elevated style={styles.questionCard}>
+        <SoftCard style={{ marginTop: 16 }}>
           <View style={styles.qTopRow}>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TagBadge label={TOPIC_LABELS[current.topic]} />
-              <TagBadge label={current.level} tone="inverse" />
+              <SoftBadge label={TOPIC_LABELS[current.topic]} tone={getTopicTone(current.topic)} />
+              <SoftBadge label={current.level} tone="neutral" />
             </View>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, fontFamily: TYPOGRAPHY.mono }]}>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
               {safeIndex + 1}/{questions.length}
             </Text>
           </View>
 
-          <Text style={[TYPOGRAPHY.h2, { color: palette.textPrimary, marginTop: 14, lineHeight: 25 }]}>
+          <Text style={[TYPOGRAPHY.h2, { color: palette.textPrimary, marginTop: 16, lineHeight: 26 }]}>
             {current.question}
           </Text>
 
           {current.contextCode ? (
-            <View style={{ marginTop: 14 }}>
+            <View style={{ marginTop: 16 }}>
               <CodeBlock code={current.contextCode} language="sql" />
             </View>
           ) : null}
 
-          {/* Rubric Self-Assessment */}
-          <View style={[styles.rubricSection, { borderTopColor: palette.border }]}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 10 }]}>
-              CEVABINDA OLMASI GEREKEN KRİTERLER (KENDİNİ İŞARETLE)
+          <View style={[styles.rubricSection, { borderTopColor: palette.borderSubtle }]}>
+            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 12 }]}>
+              KENDİNİ DEĞERLENDİRME KRİTERLERİ
             </Text>
             {current.rubricPoints.map((pt, rIdx) => {
               const checked = !!checkedRubric[rIdx];
@@ -247,12 +230,11 @@ export function InterviewScreen() {
                     style={[
                       styles.checkbox,
                       {
-                        backgroundColor: checked ? palette.accent : 'transparent',
-                        borderColor: checked ? palette.accent : palette.borderStrong,
+                        backgroundColor: checked ? palette.primary : palette.surfaceSoft,
                       },
                     ]}
                   >
-                    {checked ? <Check size={12} color={palette.accentText} strokeWidth={3} /> : null}
+                    {checked ? <Check size={12} color={palette.primaryText} strokeWidth={3} /> : null}
                   </View>
                   <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, flex: 1 }]}>
                     {pt}
@@ -262,16 +244,16 @@ export function InterviewScreen() {
             })}
           </View>
 
-          <PrimaryButton
+          <PillButton
             label={revealAnswer ? 'Model Cevabı Gizle' : 'Senior Model Cevabı Göster'}
-            variant="outline"
+            variant="soft"
             onPress={() => setRevealAnswer((v) => !v)}
-            style={{ marginTop: 14 }}
+            style={{ marginTop: 12 }}
             leftIcon={
               revealAnswer ? (
-                <EyeOff size={15} color={palette.textPrimary} />
+                <EyeOff size={15} color={palette.sageText} />
               ) : (
-                <Eye size={15} color={palette.textPrimary} />
+                <Eye size={15} color={palette.sageText} />
               )
             }
           />
@@ -281,22 +263,14 @@ export function InterviewScreen() {
               <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
                 MODEL SENIOR CEVABI
               </Text>
-              <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 6 }]}>
+              <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary }]}>
                 {current.modelAnswer}
               </Text>
 
-              <View
-                style={[
-                  styles.trapBox,
-                  {
-                    backgroundColor: palette.warningBg,
-                    borderColor: palette.warningBorder,
-                  },
-                ]}
-              >
+              <View style={[styles.trapBox, { backgroundColor: palette.peachBg }]}>
                 <View style={styles.rowGap}>
-                  <AlertTriangle size={15} color={palette.warning} />
-                  <Text style={[TYPOGRAPHY.micro, { color: palette.warning }]}>
+                  <AlertTriangle size={15} color={palette.peachText} />
+                  <Text style={[TYPOGRAPHY.micro, { color: palette.peachText }]}>
                     MÜLAKAT TUZAĞI
                   </Text>
                 </View>
@@ -305,9 +279,9 @@ export function InterviewScreen() {
                 </Text>
               </View>
 
-              <View style={[styles.followUpBox, { borderColor: palette.border }]}>
+              <View style={[styles.followUpBox, { backgroundColor: palette.surfaceSoft }]}>
                 <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-                  MUHTEMEL TAKİP SORUSU (FOLLOW-UP)
+                  TAKİP SORUSU
                 </Text>
                 <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.textPrimary, marginTop: 4 }]}>
                   {current.followUp}
@@ -317,26 +291,20 @@ export function InterviewScreen() {
           ) : null}
 
           <View style={styles.actionRow}>
-            <PrimaryButton
-              label={isMastered ? 'Hazırım ✓' : 'Hazırım Olarak İşaretle'}
-              variant={isMastered ? 'solid' : 'outline'}
+            <PillButton
+              label={isMastered ? 'Hazırım ✓' : 'Hazırım'}
+              variant={isMastered ? 'primary' : 'outline'}
               onPress={() => toggleInterviewMastered(current.id)}
               style={{ flex: 1 }}
-              leftIcon={
-                <CheckCircle2
-                  size={15}
-                  color={isMastered ? palette.accentText : palette.textPrimary}
-                />
-              }
             />
-            <PrimaryButton
+            <PillButton
               label="Sonraki"
               onPress={goNext}
-              style={{ width: 112 }}
-              leftIcon={<ChevronRight size={15} color={palette.accentText} />}
+              style={{ width: 120 }}
+              leftIcon={<ChevronRight size={15} color={palette.primaryText} />}
             />
           </View>
-        </SurfaceCard>
+        </SoftCard>
       ) : null}
     </ScrollView>
   );
@@ -351,20 +319,16 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  readinessBox: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   filterPill: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
   },
   timerCard: {
-    marginTop: 16,
-    paddingVertical: 12,
+    marginTop: 18,
+    paddingVertical: 14,
   },
   timerRow: {
     flexDirection: 'row',
@@ -373,18 +337,14 @@ const styles = StyleSheet.create({
   },
   timerControls: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
-  timerBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
+  circleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  questionCard: {
-    marginTop: 14,
   },
   qTopRow: {
     flexDirection: 'row',
@@ -399,14 +359,13 @@ const styles = StyleSheet.create({
   rubricRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
-    marginBottom: 10,
+    gap: 12,
+    marginBottom: 12,
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
+    width: 22,
+    height: 22,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
@@ -416,14 +375,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   trapBox: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 14,
   },
   followUpBox: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 14,
   },
   rowGap: {
     flexDirection: 'row',
@@ -433,6 +390,6 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 18,
+    marginTop: 20,
   },
 });

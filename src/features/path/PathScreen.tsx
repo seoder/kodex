@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
-  ArrowRight,
+  Briefcase,
   Check,
-  Clock,
+  ChevronRight,
+  Code2,
   Flame,
+  Layers,
   Moon,
+  Play,
   Sun,
-  Terminal,
-  Zap,
 } from 'lucide-react-native';
 import { useTheme } from '../../core/theme/ThemeContext';
 import { RADIUS, SPACING, TYPOGRAPHY } from '../../core/theme/tokens';
@@ -16,41 +17,67 @@ import { useProgress } from '../../core/storage/progressStore';
 import {
   ALL_MODULES,
   getModulesByLevel,
-  LEVEL_META,
   LevelNumber,
   ModuleItem,
 } from '../../data/curriculum';
 import {
-  PrimaryButton,
-  ProgressBar,
-  SegmentControl,
-  SurfaceCard,
-  TagBadge,
+  getTopicTone,
+  GoalArcGauge,
+  PillButton,
+  PillTabs,
+  SoftBadge,
+  SoftCard,
   TOPIC_LABELS,
 } from '../../shared/components/SwissUI';
+import { ILLUSTRATIONS } from '../../shared/assets';
 
 interface PathScreenProps {
   onStartModule: (moduleId: string) => void;
+  onNavigateTab: (tab: 'sandbox' | 'interview') => void;
 }
 
-export function PathScreen({ onStartModule }: PathScreenProps) {
+const WEEK_DAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+
+export function PathScreen({ onStartModule, onNavigateTab }: PathScreenProps) {
   const { palette, mode, toggleTheme } = useTheme();
   const { state } = useProgress();
   const [selectedLevel, setSelectedLevel] = useState<LevelNumber>(1);
 
   const levelModules = useMemo(() => getModulesByLevel(selectedLevel), [selectedLevel]);
-  const levelMeta = LEVEL_META[selectedLevel];
 
-  const nextRecommendedModule = useMemo<ModuleItem>(() => {
+  const nextModule = useMemo<ModuleItem>(() => {
     const firstIncomplete = ALL_MODULES.find(
       (mod) => !mod.steps.every((s) => state.completedStepIds.includes(s.id))
     );
     return firstIncomplete ?? ALL_MODULES[0];
   }, [state.completedStepIds]);
 
-  const dailyProgress = Math.min(1, state.dailyXp / Math.max(1, state.dailyGoal));
   const totalSteps = ALL_MODULES.reduce((acc, m) => acc + m.steps.length, 0);
   const overallProgress = totalSteps > 0 ? state.completedStepIds.length / totalSteps : 0;
+  const dailyProgress = Math.min(1, state.dailyXp / Math.max(1, state.dailyGoal));
+
+  const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0 .. Sun=6
+
+  const featuredCards = [
+    {
+      moduleId: 'l1-nodejs-eventloop',
+      image: ILLUSTRATIONS.nodejs,
+      title: 'Event Loop & Async Çalışma Mantığı',
+      category: 'Node.js · Seviye 1',
+    },
+    {
+      moduleId: 'l2-sql-advanced',
+      image: ILLUSTRATIONS.sql,
+      title: 'Window Functions & Atomic SQL',
+      category: 'PostgreSQL · Seviye 2',
+    },
+    {
+      moduleId: 'l3-clean-arch',
+      image: ILLUSTRATIONS.architecture,
+      title: 'Clean Architecture & Klasör Düzeni',
+      category: 'Mimari · Seviye 3',
+    },
+  ];
 
   return (
     <ScrollView
@@ -58,200 +85,290 @@ export function PathScreen({ onStartModule }: PathScreenProps) {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <View style={styles.brandRow}>
-          <View
-            style={[
-              styles.logoBox,
-              { backgroundColor: palette.accent },
-            ]}
-          >
-            <Terminal size={16} color={palette.accentText} strokeWidth={2.2} />
-          </View>
-          <View>
-            <Text style={[TYPOGRAPHY.h2, { color: palette.textPrimary, letterSpacing: 1.2 }]}>
-              KODEX
-            </Text>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-              BACKEND & INTERVIEW
-            </Text>
-          </View>
+      {/* Clean Airy Greeting Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={[TYPOGRAPHY.body, { color: palette.textMuted }]}>
+            Tekrar hoş geldin
+          </Text>
+          <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 2 }]}>
+            KODEX
+          </Text>
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={[styles.statPill, { borderColor: palette.border, backgroundColor: palette.surface }]}>
-            <Flame size={14} color={palette.textPrimary} strokeWidth={2} />
+        <View style={styles.headerActions}>
+          <View style={[styles.streakChip, { backgroundColor: palette.surface }]}>
+            <Flame size={15} color={palette.coral} strokeWidth={2.2} />
             <Text style={[TYPOGRAPHY.caption, { color: palette.textPrimary, fontWeight: '700' }]}>
               {state.streak}g
             </Text>
           </View>
-          <View style={[styles.statPill, { borderColor: palette.border, backgroundColor: palette.surface }]}>
-            <Zap size={14} color={palette.textPrimary} strokeWidth={2} />
-            <Text style={[TYPOGRAPHY.caption, { color: palette.textPrimary, fontWeight: '700' }]}>
-              {state.xp}
-            </Text>
-          </View>
           <Pressable
             onPress={toggleTheme}
-            style={[
-              styles.iconBtn,
-              { borderColor: palette.border, backgroundColor: palette.surface },
-            ]}
+            style={[styles.circleBtn, { backgroundColor: palette.surface }]}
             accessibilityLabel="Tema değiştir"
           >
             {mode === 'dark' ? (
-              <Sun size={16} color={palette.textPrimary} strokeWidth={2} />
+              <Sun size={18} color={palette.textPrimary} strokeWidth={1.9} />
             ) : (
-              <Moon size={16} color={palette.textPrimary} strokeWidth={2} />
+              <Moon size={18} color={palette.textPrimary} strokeWidth={1.9} />
             )}
           </Pressable>
         </View>
       </View>
 
-      {/* Daily Goal & Quick Continue Card */}
-      <SurfaceCard style={styles.heroCard}>
-        <View style={styles.heroHeader}>
-          <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>GÜNLÜK HEDEF</Text>
-          <Text style={[TYPOGRAPHY.caption, { color: palette.textPrimary, fontWeight: '700' }]}>
-            {state.dailyXp} / {state.dailyGoal} XP
-          </Text>
-        </View>
-        <View style={{ marginTop: 8, marginBottom: 16 }}>
-          <ProgressBar progress={dailyProgress} height={5} />
-        </View>
-
-        <View style={[styles.divider, { backgroundColor: palette.border }]} />
-
-        <View style={styles.continueRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-              SIRADAKİ DERS · SEVİYE 0{nextRecommendedModule.level}
+      {/* Section 1: My Goal Arc Card */}
+      <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginBottom: 12 }]}>
+        Hedefim
+      </Text>
+      <SoftCard style={styles.goalCard}>
+        <View style={styles.goalRow}>
+          <GoalArcGauge
+            progress={Math.max(dailyProgress, overallProgress)}
+            centerValue={`%${Math.round(overallProgress * 100)}`}
+            centerLabel={`${state.xp} XP`}
+          />
+          <View style={styles.goalInfo}>
+            <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+              Backend Ustalığı
             </Text>
-            <Text
-              style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 4 }]}
-              numberOfLines={1}
-            >
-              {nextRecommendedModule.title}
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginTop: 4 }]}>
+              Bugün {state.dailyXp} / {state.dailyGoal} XP
+            </Text>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.primary, marginTop: 8, fontWeight: '600' }]}>
+              {state.completedStepIds.length}/{totalSteps} adım tamamlandı
             </Text>
           </View>
-          <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
-            %{Math.round(overallProgress * 100)}
-          </Text>
         </View>
+      </SoftCard>
 
-        <PrimaryButton
-          label="Derse Devam Et"
-          onPress={() => onStartModule(nextRecommendedModule.id)}
-          style={{ marginTop: 14 }}
-        />
-      </SurfaceCard>
-
-      {/* Level Selector */}
-      <View style={{ marginTop: SPACING.xl }}>
-        <SegmentControl<LevelNumber>
-          value={selectedLevel}
-          onChange={setSelectedLevel}
-          options={[
-            { label: '1. Öğreniş', value: 1 },
-            { label: '2. Devam Ediş', value: 2 },
-            { label: '3. Mimari', value: 3 },
-          ]}
-        />
-      </View>
-
-      {/* Level Header */}
-      <View style={styles.levelBanner}>
-        <TagBadge label={levelMeta.badge} tone="inverse" />
-        <Text style={[TYPOGRAPHY.h1, { color: palette.textPrimary, marginTop: 10 }]}>
-          {levelMeta.title}
+      {/* Section 2: Weekly Rhythm & Today's Lesson */}
+      <View style={styles.sectionHeader}>
+        <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+          Günlük Ritim
         </Text>
-        <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 4 }]}>
-          {levelMeta.subtitle}
+        <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
+          Seviye 0{nextModule.level}
         </Text>
       </View>
 
-      {/* Structured Module Path */}
-      <View style={styles.moduleList}>
-        {levelModules.map((mod, idx) => {
-          const doneCount = mod.steps.filter((s) =>
-            state.completedStepIds.includes(s.id)
-          ).length;
-          const totalCount = mod.steps.length;
-          const isCompleted = totalCount > 0 && doneCount === totalCount;
-          const progress = totalCount > 0 ? doneCount / totalCount : 0;
-          const isLast = idx === levelModules.length - 1;
+      <SoftCard>
+        <View style={styles.weekRow}>
+          {WEEK_DAYS.map((day, idx) => {
+            const isToday = idx === todayIdx;
+            const isPastDone = idx < todayIdx && idx >= Math.max(0, todayIdx - state.streak + 1);
+            const dotBg = isToday
+              ? palette.coral
+              : isPastDone
+                ? palette.primary
+                : palette.surfaceSoft;
 
-          return (
-            <View key={mod.id} style={styles.timelineRow}>
-              {/* Left Rail */}
-              <View style={styles.railColumn}>
-                <View
+            return (
+              <View key={day} style={styles.dayCol}>
+                <Text
                   style={[
-                    styles.nodeCircle,
-                    {
-                      backgroundColor: isCompleted ? palette.accent : palette.bg,
-                      borderColor: isCompleted ? palette.accent : palette.borderStrong,
-                    },
+                    TYPOGRAPHY.micro,
+                    { color: isToday ? palette.textPrimary : palette.textMuted, marginBottom: 8 },
                   ]}
                 >
-                  {isCompleted ? (
-                    <Check size={14} color={palette.accentText} strokeWidth={2.5} />
-                  ) : (
-                    <Text
-                      style={[
-                        TYPOGRAPHY.micro,
-                        { color: palette.textPrimary, fontFamily: TYPOGRAPHY.mono },
-                      ]}
-                    >
-                      {String(mod.order).padStart(2, '0')}
-                    </Text>
-                  )}
+                  {day}
+                </Text>
+                <View style={[styles.dayDot, { backgroundColor: dotBg }]}>
+                  {isPastDone ? <Check size={12} color="#FFFFFF" strokeWidth={2.8} /> : null}
                 </View>
-                {!isLast ? (
-                  <View style={[styles.railLine, { backgroundColor: palette.border }]} />
-                ) : null}
               </View>
+            );
+          })}
+        </View>
 
-              {/* Module Card */}
-              <Pressable
-                onPress={() => onStartModule(mod.id)}
-                style={({ pressed }) => [
-                  styles.moduleCard,
-                  {
-                    backgroundColor: pressed ? palette.surfacePressed : palette.surfaceElevated,
-                    borderColor: isCompleted ? palette.borderStrong : palette.border,
-                  },
-                ]}
+        <View style={[styles.divider, { backgroundColor: palette.borderSubtle }]} />
+
+        <Pressable
+          onPress={() => onStartModule(nextModule.id)}
+          style={({ pressed }) => [
+            styles.todayLessonBox,
+            { backgroundColor: pressed ? palette.surfacePressed : palette.bg },
+          ]}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
+              SIRADAKİ DERS · {nextModule.durationMin} DK
+            </Text>
+            <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 3 }]}>
+              {nextModule.title}
+            </Text>
+          </View>
+          <View style={[styles.playCircle, { backgroundColor: palette.primary }]}>
+            <Play size={15} color={palette.primaryText} fill={palette.primaryText} />
+          </View>
+        </Pressable>
+      </SoftCard>
+
+      {/* Section 3: Pastel Quick Actions (3-Tile Row) */}
+      <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 26, marginBottom: 12 }]}>
+        Hızlı Erişim
+      </Text>
+      <View style={styles.quickGrid}>
+        <Pressable
+          onPress={() => onNavigateTab('sandbox')}
+          style={[styles.quickTile, { backgroundColor: palette.sageBg }]}
+        >
+          <View style={[styles.quickIcon, { backgroundColor: palette.surface }]}>
+            <Code2 size={18} color={palette.sageText} strokeWidth={2} />
+          </View>
+          <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.sageText, marginTop: 14 }]}>
+            SQL & Kod{'\n'}Lab
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => onNavigateTab('interview')}
+          style={[styles.quickTile, { backgroundColor: palette.peachBg }]}
+        >
+          <View style={[styles.quickIcon, { backgroundColor: palette.surface }]}>
+            <Briefcase size={18} color={palette.peachText} strokeWidth={2} />
+          </View>
+          <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.peachText, marginTop: 14 }]}>
+            Mülakat{'\n'}Simülatörü
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setSelectedLevel(3)}
+          style={[styles.quickTile, { backgroundColor: palette.sandBg }]}
+        >
+          <View style={[styles.quickIcon, { backgroundColor: palette.surface }]}>
+            <Layers size={18} color={palette.sandText} strokeWidth={2} />
+          </View>
+          <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.sandText, marginTop: 14 }]}>
+            Clean{'\n'}Mimari
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Section 4: Dark Forest Featured Banner */}
+      <View style={[styles.bannerCard, { backgroundColor: palette.bannerBg }]}>
+        <Image source={ILLUSTRATIONS.interview} style={styles.bannerImage} resizeMode="cover" />
+        <View style={styles.bannerContent}>
+          <Text style={[TYPOGRAPHY.h3, { color: palette.bannerText }]}>
+            Senior Mülakat Kampı
+          </Text>
+          <Text style={[TYPOGRAPHY.caption, { color: palette.bannerMuted, marginTop: 4 }]}>
+            Zamanlayıcı ve rubrikle gerçek teknik sorulara hazırlan.
+          </Text>
+          <View style={{ marginTop: 12, alignSelf: 'flex-start' }}>
+            <PillButton
+              label="Başla"
+              variant="light"
+              compact
+              onPress={() => onNavigateTab('interview')}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Section 5: Visual Editorial Cards (Horizontal Scroll) */}
+      <View style={styles.sectionHeader}>
+        <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+          Öne Çıkan Konular
+        </Text>
+        <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
+          Görsel rehber
+        </Text>
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.featuredScroll}
+      >
+        {featuredCards.map((item) => (
+          <Pressable
+            key={item.moduleId}
+            onPress={() => onStartModule(item.moduleId)}
+            style={[styles.articleCard, { backgroundColor: palette.surface }]}
+          >
+            <Image source={item.image} style={styles.articleImg} resizeMode="cover" />
+            <View style={styles.articleBody}>
+              <Text
+                style={[TYPOGRAPHY.bodyStrong, { color: palette.textPrimary }]}
+                numberOfLines={2}
               >
-                <View style={styles.moduleTopRow}>
-                  <TagBadge label={TOPIC_LABELS[mod.topic]} />
-                  <View style={styles.metaInline}>
-                    <Clock size={12} color={palette.textMuted} strokeWidth={2} />
-                    <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
-                      {mod.durationMin} dk
-                    </Text>
-                  </View>
-                </View>
+                {item.title}
+              </Text>
+              <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginTop: 6 }]}>
+                {item.category}
+              </Text>
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
 
+      {/* Section 6: Clean 3-Level Path */}
+      <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 28, marginBottom: 12 }]}>
+        Öğrenme Yolu
+      </Text>
+
+      <PillTabs<LevelNumber>
+        value={selectedLevel}
+        onChange={setSelectedLevel}
+        options={[
+          { label: '1. Öğreniş', value: 1 },
+          { label: '2. Devam Ediş', value: 2 },
+          { label: '3. Mimari', value: 3 },
+        ]}
+      />
+
+      <View style={styles.moduleList}>
+        {levelModules.map((mod) => {
+          const done = mod.steps.filter((s) => state.completedStepIds.includes(s.id)).length;
+          const total = mod.steps.length;
+          const completed = total > 0 && done === total;
+
+          return (
+            <Pressable
+              key={mod.id}
+              onPress={() => onStartModule(mod.id)}
+              style={({ pressed }) => [
+                styles.moduleRowCard,
+                {
+                  backgroundColor: pressed ? palette.surfacePressed : palette.surface,
+                },
+              ]}
+            >
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <View style={styles.moduleMeta}>
+                  <SoftBadge label={TOPIC_LABELS[mod.topic]} tone={getTopicTone(mod.topic)} />
+                  <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
+                    {done}/{total} adım · {mod.durationMin} dk
+                  </Text>
+                </View>
                 <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 10 }]}>
                   {mod.title}
                 </Text>
-                <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 4 }]}>
+                <Text
+                  style={[TYPOGRAPHY.caption, { color: palette.textSecondary, marginTop: 4 }]}
+                  numberOfLines={2}
+                >
                   {mod.subtitle}
                 </Text>
+              </View>
 
-                <View style={styles.moduleFooter}>
-                  <View style={{ flex: 1, marginRight: 12 }}>
-                    <ProgressBar progress={progress} height={3} />
-                  </View>
-                  <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-                    {doneCount}/{totalCount} ADIM
-                  </Text>
-                  <ArrowRight size={15} color={palette.textPrimary} strokeWidth={2} />
-                </View>
-              </Pressable>
-            </View>
+              <View
+                style={[
+                  styles.statusCircle,
+                  {
+                    backgroundColor: completed ? palette.primary : palette.surfaceSoft,
+                  },
+                ]}
+              >
+                {completed ? (
+                  <Check size={16} color={palette.primaryText} strokeWidth={2.5} />
+                ) : (
+                  <ChevronRight size={17} color={palette.textSecondary} strokeWidth={2} />
+                )}
+              </View>
+            </Pressable>
           );
         })}
       </View>
@@ -265,115 +382,153 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.md,
     paddingBottom: 36,
   },
-  topBar: {
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.lg,
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  brandRow: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  logoBox: {
-    width: 34,
-    height: 34,
-    borderRadius: RADIUS.sm,
+  streakChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    height: 40,
+    borderRadius: RADIUS.pill,
+  },
+  circleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statsRow: {
+  goalCard: {
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+  },
+  goalRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 18,
   },
-  statPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
+  goalInfo: {
+    flex: 1,
   },
-  iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroCard: {
-    padding: SPACING.lg,
-  },
-  heroHeader: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 26,
+    marginBottom: 12,
+  },
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dayCol: {
+    alignItems: 'center',
+  },
+  dayDot: {
+    width: 26,
+    height: 26,
+    borderRadius: RADIUS.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   divider: {
     height: 1,
-    marginBottom: 14,
+    marginVertical: 18,
   },
-  continueRow: {
+  todayLessonBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    padding: 14,
+    borderRadius: RADIUS.md,
     gap: 12,
   },
-  levelBanner: {
-    marginTop: SPACING.xl,
-    marginBottom: SPACING.lg,
-  },
-  moduleList: {
-    gap: 0,
-  },
-  timelineRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  railColumn: {
-    width: 34,
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  nodeCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: RADIUS.sm,
-    borderWidth: 1.5,
+  playCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
   },
-  railLine: {
-    width: 1,
-    flex: 1,
-    marginVertical: 4,
+  quickGrid: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  moduleCard: {
+  quickTile: {
     flex: 1,
-    borderWidth: 1,
     borderRadius: RADIUS.md,
-    padding: SPACING.lg,
-    marginBottom: SPACING.md,
-  },
-  moduleTopRow: {
-    flexDirection: 'row',
+    padding: 14,
+    minHeight: 118,
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
-  metaInline: {
+  quickIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerCard: {
+    marginTop: 24,
+    borderRadius: RADIUS.lg,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 16,
   },
-  moduleFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  bannerImage: {
+    width: 88,
+    height: 88,
+    borderRadius: RADIUS.md,
+  },
+  bannerContent: {
+    flex: 1,
+  },
+  featuredScroll: {
+    gap: 14,
+    paddingRight: 8,
+  },
+  articleCard: {
+    width: 214,
+    borderRadius: RADIUS.lg,
+    overflow: 'hidden',
+  },
+  articleImg: {
+    width: '100%',
+    height: 116,
+  },
+  articleBody: {
+    padding: 14,
+  },
+  moduleList: {
     marginTop: 14,
+    gap: 12,
+  },
+  moduleRowCard: {
+    borderRadius: RADIUS.lg,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  moduleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  statusCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   BackHandler,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,7 +16,7 @@ import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
-  Code2,
+  ChevronRight,
   HelpCircle,
   Play,
   RotateCcw,
@@ -26,12 +27,13 @@ import { useProgress } from '../../core/storage/progressStore';
 import { validateCodeSubmission, ValidationResult } from '../../core/engine/validator';
 import { SANDBOX_CHALLENGES, SandboxChallenge, TopicId } from '../../data/curriculum';
 import {
-  PrimaryButton,
+  getTopicTone,
+  PillButton,
+  SoftBadge,
   SqlTablePreview,
-  SurfaceCard,
-  TagBadge,
   TOPIC_LABELS,
 } from '../../shared/components/SwissUI';
+import { ILLUSTRATIONS } from '../../shared/assets';
 
 type FilterTopic = 'all' | TopicId;
 
@@ -95,18 +97,18 @@ export function SandboxScreen() {
         style={{ flex: 1, backgroundColor: palette.bg }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={[styles.editorHeader, { borderBottomColor: palette.border }]}>
+        <View style={styles.editorHeader}>
           <Pressable
             onPress={() => setActiveChallenge(null)}
-            style={styles.backBtn}
+            style={[styles.backCircle, { backgroundColor: palette.surface }]}
             hitSlop={8}
           >
-            <ArrowLeft size={20} color={palette.textPrimary} strokeWidth={2} />
-            <Text style={[TYPOGRAPHY.bodyStrong, { color: palette.textPrimary }]}>
-              Laboratuvar
-            </Text>
+            <ArrowLeft size={18} color={palette.textPrimary} strokeWidth={2} />
           </Pressable>
-          <TagBadge label={`${activeChallenge.language.toUpperCase()} · +${activeChallenge.xp} XP`} tone="inverse" />
+          <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, flex: 1, marginLeft: 12 }]} numberOfLines={1}>
+            Kod Lab
+          </Text>
+          <SoftBadge label={`+${activeChallenge.xp} XP`} tone="sage" />
         </View>
 
         <ScrollView
@@ -118,42 +120,30 @@ export function SandboxScreen() {
           <Text style={[TYPOGRAPHY.h1, { color: palette.textPrimary }]}>
             {activeChallenge.title}
           </Text>
-          <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 6 }]}>
+          <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 8 }]}>
             {activeChallenge.prompt}
           </Text>
 
           {activeChallenge.tables ? (
-            <View style={{ gap: 10, marginTop: 14 }}>
+            <View style={{ gap: 10, marginTop: 16 }}>
               {activeChallenge.tables.map((t, idx) => (
-                <SqlTablePreview key={idx} table={t} accentLabel="INPUT" />
+                <SqlTablePreview key={idx} table={t} accentLabel="GİRDİ" />
               ))}
               {activeChallenge.expectedTable ? (
-                <SqlTablePreview
-                  table={activeChallenge.expectedTable}
-                  accentLabel="EXPECTED"
-                />
+                <SqlTablePreview table={activeChallenge.expectedTable} accentLabel="BEKLENEN" />
               ) : null}
             </View>
           ) : null}
 
-          <View
-            style={[
-              styles.editorBox,
-              {
-                backgroundColor: palette.codeBg,
-                borderColor: palette.borderStrong,
-                marginTop: 16,
-              },
-            ]}
-          >
+          <View style={[styles.editorBox, { backgroundColor: palette.codeBg, marginTop: 18 }]}>
             <View style={[styles.editorToolbar, { borderBottomColor: palette.codeBorder }]}>
-              <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>
-                {activeChallenge.language.toUpperCase()} SANDBOX
+              <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>
+                {activeChallenge.language.toUpperCase()}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 14 }}>
+              <View style={{ flexDirection: 'row', gap: 16 }}>
                 <Pressable onPress={() => setShowHint((h) => !h)} style={styles.miniAction}>
-                  <HelpCircle size={13} color={palette.textMuted} />
-                  <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>İPUCU</Text>
+                  <HelpCircle size={13} color={palette.codeLineNum} />
+                  <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>İpucu</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => {
@@ -162,8 +152,8 @@ export function SandboxScreen() {
                   }}
                   style={styles.miniAction}
                 >
-                  <RotateCcw size={13} color={palette.textMuted} />
-                  <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>SIFIRLA</Text>
+                  <RotateCcw size={13} color={palette.codeLineNum} />
+                  <Text style={[TYPOGRAPHY.micro, { color: palette.codeLineNum }]}>Sıfırla</Text>
                 </Pressable>
               </View>
             </View>
@@ -179,9 +169,9 @@ export function SandboxScreen() {
             />
           </View>
 
-          <View style={{ marginTop: 14 }}>
-            <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 8 }]}>
-              HIZLI TOKENLAR
+          <View style={{ marginTop: 16 }}>
+            <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginBottom: 8 }]}>
+              Hızlı ekle
             </Text>
             <View style={styles.tokenWrap}>
               {activeChallenge.quickTokens.map((tok, i) => (
@@ -190,10 +180,7 @@ export function SandboxScreen() {
                   onPress={() =>
                     setDraft((prev) => (prev.trim() ? `${prev.trimEnd()}\n${tok}` : tok))
                   }
-                  style={[
-                    styles.tokenChip,
-                    { backgroundColor: palette.surface, borderColor: palette.border },
-                  ]}
+                  style={[styles.tokenChip, { backgroundColor: palette.surface }]}
                 >
                   <Text style={[TYPOGRAPHY.code, { fontSize: 12, color: palette.textPrimary }]}>
                     {tok}
@@ -204,35 +191,24 @@ export function SandboxScreen() {
           </View>
 
           {showHint ? (
-            <SurfaceCard style={{ marginTop: 14 }}>
-              <Text style={[TYPOGRAPHY.micro, { color: palette.warning }]}>İPUCU</Text>
+            <View style={[styles.hintBox, { backgroundColor: palette.sandBg }]}>
+              <Text style={[TYPOGRAPHY.micro, { color: palette.sandText }]}>İPUCU</Text>
               <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 4 }]}>
                 {activeChallenge.hint}
               </Text>
-              <Pressable
-                onPress={() => setDraft(activeChallenge.solution)}
-                style={{ marginTop: 10 }}
-              >
-                <Text
-                  style={[
-                    TYPOGRAPHY.caption,
-                    { color: palette.textMuted, textDecorationLine: 'underline' },
-                  ]}
-                >
-                  Çözümü editöre doldur
+              <Pressable onPress={() => setDraft(activeChallenge.solution)} style={{ marginTop: 10 }}>
+                <Text style={[TYPOGRAPHY.caption, { color: palette.primary, fontWeight: '700' }]}>
+                  Referans çözümü editöre yerleştir
                 </Text>
               </Pressable>
-            </SurfaceCard>
+            </View>
           ) : null}
 
           {result ? (
             <View
               style={[
                 styles.resultCard,
-                {
-                  backgroundColor: result.passed ? palette.successBg : palette.errorBg,
-                  borderColor: result.passed ? palette.successBorder : palette.errorBorder,
-                },
+                { backgroundColor: result.passed ? palette.successBg : palette.errorBg },
               ]}
             >
               <View style={styles.rowGap}>
@@ -247,7 +223,7 @@ export function SandboxScreen() {
                     { color: result.passed ? palette.success : palette.error },
                   ]}
                 >
-                  {result.passed ? 'Tüm Testler Geçti' : 'Eksik / Hatalı Yapı'}
+                  {result.passed ? 'Tüm testler geçti' : 'Tekrar kontrol edin'}
                 </Text>
               </View>
               <Text style={[TYPOGRAPHY.body, { color: palette.textPrimary, marginTop: 6 }]}>
@@ -257,16 +233,11 @@ export function SandboxScreen() {
           ) : null}
         </ScrollView>
 
-        <View
-          style={[
-            styles.bottomBar,
-            { backgroundColor: palette.bg, borderTopColor: palette.border },
-          ]}
-        >
-          <PrimaryButton
+        <View style={[styles.bottomBar, { backgroundColor: palette.bg }]}>
+          <PillButton
             label="Çalıştır & Test Et"
             onPress={runCheck}
-            leftIcon={<Play size={15} color={palette.accentText} strokeWidth={2.2} />}
+            leftIcon={<Play size={14} color={palette.primaryText} fill={palette.primaryText} />}
           />
         </View>
       </KeyboardAvoidingView>
@@ -287,18 +258,28 @@ export function SandboxScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted }]}>PRATİK LABORATUVARI</Text>
-      <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 4 }]}>
+      <Text style={[TYPOGRAPHY.body, { color: palette.textMuted }]}>Pratik Laboratuvarı</Text>
+      <Text style={[TYPOGRAPHY.display, { color: palette.textPrimary, marginTop: 2 }]}>
         Kod & SQL Yaz
       </Text>
-      <Text style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 6 }]}>
-        Gerçek üretim senaryolarında SQL sorgusu, Drizzle transaction ve tip-güvenli TypeScript yazıp anında doğrulayın.
-      </Text>
+
+      {/* Clean Visual Header Card */}
+      <View style={[styles.heroBanner, { backgroundColor: palette.surface }]}>
+        <Image source={ILLUSTRATIONS.sql} style={styles.heroImg} resizeMode="cover" />
+        <View style={styles.heroBody}>
+          <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+            Gerçek Senaryolarla Pratik
+          </Text>
+          <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary, marginTop: 4 }]}>
+            {state.completedSandboxIds.length}/{SANDBOX_CHALLENGES.length} problem çözüldü
+          </Text>
+        </View>
+      </View>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ marginTop: 18 }}
+        style={{ marginTop: 20 }}
         contentContainerStyle={{ gap: 8 }}
       >
         {filters.map((f) => {
@@ -309,16 +290,13 @@ export function SandboxScreen() {
               onPress={() => setFilter(f.value)}
               style={[
                 styles.filterPill,
-                {
-                  backgroundColor: active ? palette.accent : palette.surface,
-                  borderColor: active ? palette.accent : palette.border,
-                },
+                { backgroundColor: active ? palette.primary : palette.surface },
               ]}
             >
               <Text
                 style={[
                   TYPOGRAPHY.caption,
-                  { color: active ? palette.accentText : palette.textSecondary, fontWeight: '600' },
+                  { color: active ? palette.primaryText : palette.textSecondary, fontWeight: '600' },
                 ]}
               >
                 {f.label}
@@ -337,39 +315,39 @@ export function SandboxScreen() {
               onPress={() => openChallenge(ch)}
               style={({ pressed }) => [
                 styles.challengeCard,
-                {
-                  backgroundColor: pressed ? palette.surfacePressed : palette.surfaceElevated,
-                  borderColor: solved ? palette.borderStrong : palette.border,
-                },
+                { backgroundColor: pressed ? palette.surfacePressed : palette.surface },
               ]}
             >
-              <View style={styles.challengeTop}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
                 <View style={styles.rowGap}>
-                  <TagBadge label={TOPIC_LABELS[ch.topic]} />
-                  <TagBadge
-                    label={ch.difficulty}
-                    tone={ch.difficulty === 'Senior' ? 'inverse' : 'neutral'}
-                  />
+                  <SoftBadge label={TOPIC_LABELS[ch.topic]} tone={getTopicTone(ch.topic)} />
+                  <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted }]}>
+                    {ch.difficulty} · +{ch.xp} XP
+                  </Text>
                 </View>
-                {solved ? (
-                  <CheckCircle2 size={18} color={palette.success} strokeWidth={2.2} />
-                ) : (
-                  <Code2 size={17} color={palette.textMuted} strokeWidth={2} />
-                )}
+                <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 10 }]}>
+                  {ch.title}
+                </Text>
+                <Text
+                  style={[TYPOGRAPHY.caption, { color: palette.textSecondary, marginTop: 4 }]}
+                  numberOfLines={2}
+                >
+                  {ch.prompt}
+                </Text>
               </View>
 
-              <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary, marginTop: 10 }]}>
-                {ch.title}
-              </Text>
-              <Text
-                style={[TYPOGRAPHY.body, { color: palette.textSecondary, marginTop: 4 }]}
-                numberOfLines={2}
+              <View
+                style={[
+                  styles.iconCircle,
+                  { backgroundColor: solved ? palette.sageBg : palette.surfaceSoft },
+                ]}
               >
-                {ch.prompt}
-              </Text>
-              <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginTop: 12 }]}>
-                +{ch.xp} XP · {ch.testCases.length} TEST SENARYOSU
-              </Text>
+                {solved ? (
+                  <CheckCircle2 size={18} color={palette.primary} strokeWidth={2.2} />
+                ) : (
+                  <ChevronRight size={17} color={palette.textSecondary} strokeWidth={2} />
+                )}
+              </View>
             </Pressable>
           );
         })}
@@ -384,21 +362,35 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.md,
     paddingBottom: 36,
   },
+  heroBanner: {
+    marginTop: 18,
+    borderRadius: RADIUS.lg,
+    overflow: 'hidden',
+  },
+  heroImg: {
+    width: '100%',
+    height: 130,
+  },
+  heroBody: {
+    padding: 16,
+  },
   filterPill: {
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
   },
   challengeCard: {
-    borderWidth: 1,
-    borderRadius: RADIUS.md,
-    padding: SPACING.lg,
-  },
-  challengeTop: {
+    borderRadius: RADIUS.lg,
+    padding: 18,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  iconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: RADIUS.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowGap: {
     flexDirection: 'row',
@@ -407,32 +399,31 @@ const styles = StyleSheet.create({
   },
   editorHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
   },
-  backBtn: {
-    flexDirection: 'row',
+  backCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
   },
   editorScroll: {
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
     paddingBottom: 36,
   },
   editorBox: {
-    borderWidth: 1.5,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.md,
     overflow: 'hidden',
   },
   editorToolbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
   miniAction: {
@@ -445,7 +436,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     minHeight: 140,
-    padding: SPACING.md,
+    padding: 16,
   },
   tokenWrap: {
     flexDirection: 'row',
@@ -453,20 +444,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tokenChip: {
-    borderWidth: 1,
-    borderRadius: RADIUS.xs,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  hintBox: {
+    marginTop: 16,
+    borderRadius: RADIUS.md,
+    padding: 16,
   },
   resultCard: {
     marginTop: 16,
-    borderWidth: 1,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 16,
   },
   bottomBar: {
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderTopWidth: 1,
+    paddingVertical: 14,
   },
 });
