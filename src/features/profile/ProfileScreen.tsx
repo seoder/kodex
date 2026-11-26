@@ -215,7 +215,7 @@ export function ProfileScreen({ onStartModule }: ProfileScreenProps) {
           { color: palette.textMuted, textAlign: 'center', marginTop: 18 },
         ]}
       >
-        KODEX v2.0.1 · {ALL_MODULES.length} Modül
+        KODEX v2.1.0 · {ALL_MODULES.length} Modül
       </Text>
     </ScrollView>
   );
