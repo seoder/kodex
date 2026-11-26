@@ -128,6 +128,8 @@ export function InterviewScreen() {
             <Pressable
               key={f.value}
               onPress={() => setFilter(f.value)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
               style={[
                 styles.filterPill,
                 { backgroundColor: active ? palette.primary : palette.surface },
@@ -136,10 +138,10 @@ export function InterviewScreen() {
               <Text
                 style={[
                   TYPOGRAPHY.caption,
-                  { color: active ? palette.primaryText : palette.textSecondary, fontWeight: '600' },
+                  { color: active ? palette.primaryText : palette.textSecondary, fontWeight: active ? '700' : '500' },
                 ]}
               >
-                {f.label}
+                {active ? `✓ ${f.label}` : f.label}
               </Text>
             </Pressable>
           );
@@ -169,12 +171,14 @@ export function InterviewScreen() {
           <View style={styles.timerControls}>
             <Pressable
               onPress={() => setTimerRunning((r) => !r)}
+              accessibilityRole="button"
+              accessibilityLabel={timerRunning ? 'Zamanlayıcıyı duraklat' : 'Zamanlayıcıyı başlat'}
               style={[styles.circleBtn, { backgroundColor: palette.primary }]}
             >
               {timerRunning ? (
-                <Pause size={16} color={palette.primaryText} />
+                <Pause size={18} color={palette.primaryText} />
               ) : (
-                <Play size={16} color={palette.primaryText} fill={palette.primaryText} />
+                <Play size={18} color={palette.primaryText} fill={palette.primaryText} />
               )}
             </Pressable>
             <Pressable
@@ -182,9 +186,11 @@ export function InterviewScreen() {
                 setTimerRunning(false);
                 setSecondsLeft(ROUND_SECONDS);
               }}
+              accessibilityRole="button"
+              accessibilityLabel="Zamanlayıcıyı sıfırla"
               style={[styles.circleBtn, { backgroundColor: palette.surfaceSoft }]}
             >
-              <RotateCcw size={16} color={palette.textPrimary} />
+              <RotateCcw size={18} color={palette.textPrimary} />
             </Pressable>
           </View>
         </View>
@@ -324,7 +330,8 @@ const styles = StyleSheet.create({
   filterPill: {
     borderRadius: RADIUS.pill,
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   timerCard: {
     marginTop: 18,
@@ -340,8 +347,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   circleBtn: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',

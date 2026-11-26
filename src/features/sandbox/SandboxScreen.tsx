@@ -288,18 +288,24 @@ export function SandboxScreen() {
             <Pressable
               key={f.value}
               onPress={() => setFilter(f.value)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
               style={[
                 styles.filterPill,
-                { backgroundColor: active ? palette.primary : palette.surface },
+                {
+                  backgroundColor: active ? palette.primary : palette.surface,
+                  borderWidth: active ? 0 : 1,
+                  borderColor: palette.borderSubtle,
+                },
               ]}
             >
               <Text
                 style={[
                   TYPOGRAPHY.caption,
-                  { color: active ? palette.primaryText : palette.textSecondary, fontWeight: '600' },
+                  { color: active ? palette.primaryText : palette.textSecondary, fontWeight: active ? '700' : '500' },
                 ]}
               >
-                {f.label}
+                {active ? `✓ ${f.label}` : f.label}
               </Text>
             </Pressable>
           );
@@ -377,11 +383,13 @@ const styles = StyleSheet.create({
   filterPill: {
     borderRadius: RADIUS.pill,
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   challengeCard: {
     borderRadius: RADIUS.lg,
     padding: 18,
+    minHeight: 84,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -404,8 +412,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   backCircle: {
-    width: 36,
-    height: 36,
+    width: 48,
+    height: 48,
     borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',

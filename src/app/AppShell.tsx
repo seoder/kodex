@@ -11,7 +11,7 @@ import { LessonPlayerScreen } from '../features/lesson/LessonPlayerScreen';
 import { SandboxScreen } from '../features/sandbox/SandboxScreen';
 import { InterviewScreen } from '../features/interview/InterviewScreen';
 import { ProfileScreen } from '../features/profile/ProfileScreen';
-import { TYPOGRAPHY } from '../core/theme/tokens';
+import { RADIUS, TYPOGRAPHY } from '../core/theme/tokens';
 
 type TabKey = 'path' | 'sandbox' | 'interview' | 'profile';
 
@@ -31,58 +31,61 @@ function MainShell() {
           module={activeModule}
           onExit={() => setActiveModuleId(null)}
         />
-      ) : (
-        <>
-          <View style={styles.content}>
-            {activeTab === 'path' ? (
-              <PathScreen
-                onStartModule={(id) => setActiveModuleId(id)}
-                onNavigateTab={(tab) => setActiveTab(tab)}
-              />
-            ) : null}
-            {activeTab === 'sandbox' ? <SandboxScreen /> : null}
-            {activeTab === 'interview' ? <InterviewScreen /> : null}
-            {activeTab === 'profile' ? (
-              <ProfileScreen onStartModule={(id) => setActiveModuleId(id)} />
-            ) : null}
-          </View>
+      ) : null}
 
-          <View
-            style={[
-              styles.tabBar,
-              {
-                backgroundColor: palette.surface,
-                borderTopColor: palette.borderSubtle,
-              },
-            ]}
-          >
-            <TabButton
-              label="Ana Sayfa"
-              active={activeTab === 'path'}
-              onPress={() => setActiveTab('path')}
-              icon={(color) => <Home size={20} color={color} strokeWidth={1.9} />}
-            />
-            <TabButton
-              label="Kod Lab"
-              active={activeTab === 'sandbox'}
-              onPress={() => setActiveTab('sandbox')}
-              icon={(color) => <Code2 size={20} color={color} strokeWidth={1.9} />}
-            />
-            <TabButton
-              label="Mülakat"
-              active={activeTab === 'interview'}
-              onPress={() => setActiveTab('interview')}
-              icon={(color) => <Briefcase size={20} color={color} strokeWidth={1.9} />}
-            />
-            <TabButton
-              label="Profil"
-              active={activeTab === 'profile'}
-              onPress={() => setActiveTab('profile')}
-              icon={(color) => <User size={20} color={color} strokeWidth={1.9} />}
-            />
+      {/* Keep tabs mounted when lesson is open or switching tabs so filter, selected level, and scroll position are preserved */}
+      <View style={[styles.shell, activeModule ? styles.hidden : null]}>
+        <View style={styles.content}>
+          <View style={[styles.tabPane, activeTab !== 'path' && styles.hidden]}>
+            <PathScreen onStartModule={(id) => setActiveModuleId(id)} />
           </View>
-        </>
-      )}
+          <View style={[styles.tabPane, activeTab !== 'sandbox' && styles.hidden]}>
+            <SandboxScreen />
+          </View>
+          <View style={[styles.tabPane, activeTab !== 'interview' && styles.hidden]}>
+            <InterviewScreen />
+          </View>
+          <View style={[styles.tabPane, activeTab !== 'profile' && styles.hidden]}>
+            <ProfileScreen onStartModule={(id) => setActiveModuleId(id)} />
+          </View>
+        </View>
+
+        <View
+          accessibilityRole="tablist"
+          style={[
+            styles.tabBar,
+            {
+              backgroundColor: palette.surface,
+              borderTopColor: palette.borderSubtle,
+            },
+          ]}
+        >
+          <TabButton
+            label="Öğren"
+            active={activeTab === 'path'}
+            onPress={() => setActiveTab('path')}
+            icon={(color) => <Home size={20} color={color} strokeWidth={2} />}
+          />
+          <TabButton
+            label="Kod Lab"
+            active={activeTab === 'sandbox'}
+            onPress={() => setActiveTab('sandbox')}
+            icon={(color) => <Code2 size={20} color={color} strokeWidth={2} />}
+          />
+          <TabButton
+            label="Mülakat"
+            active={activeTab === 'interview'}
+            onPress={() => setActiveTab('interview')}
+            icon={(color) => <Briefcase size={20} color={color} strokeWidth={2} />}
+          />
+          <TabButton
+            label="Profil"
+            active={activeTab === 'profile'}
+            onPress={() => setActiveTab('profile')}
+            icon={(color) => <User size={20} color={color} strokeWidth={2} />}
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -102,13 +105,26 @@ function TabButton({
   const color = active ? palette.coral : palette.textMuted;
 
   return (
-    <Pressable onPress={onPress} style={styles.tabItem}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      style={styles.tabItem}
+    >
+      <View
+        style={[
+          styles.activeBar,
+          { backgroundColor: active ? palette.coral : 'transparent' },
+        ]}
+      />
       {icon(color)}
       <Text
         style={[
-          TYPOGRAPHY.micro,
-          { color, marginTop: 5, fontWeight: active ? '700' : '500' },
+          TYPOGRAPHY.caption,
+          { color, marginTop: 4, fontSize: 11, fontWeight: active ? '700' : '500' },
         ]}
+        numberOfLines={1}
       >
         {label}
       </Text>
@@ -137,18 +153,34 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
   },
+  shell: {
+    flex: 1,
+  },
   content: {
     flex: 1,
+  },
+  tabPane: {
+    flex: 1,
+  },
+  hidden: {
+    display: 'none',
   },
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    paddingTop: 10,
-    paddingBottom: 8,
+    paddingBottom: 6,
   },
   tabItem: {
     flex: 1,
+    minHeight: 56,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: 4,
+  },
+  activeBar: {
+    width: 22,
+    height: 3,
+    borderRadius: RADIUS.pill,
+    marginBottom: 6,
   },
 });

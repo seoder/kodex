@@ -9,6 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { Check } from 'lucide-react-native';
 import { useTheme } from '../../core/theme/ThemeContext';
 import { RADIUS, SPACING, TYPOGRAPHY } from '../../core/theme/tokens';
 import { SqlTableSample, TestCaseIO, TopicId } from '../../data/curriculum/types';
@@ -45,7 +46,6 @@ export function SoftCard({
   );
 }
 
-/** Alias kept for clean imports */
 export const SurfaceCard = SoftCard;
 
 export function PillButton({
@@ -56,6 +56,7 @@ export function PillButton({
   style,
   leftIcon,
   compact = false,
+  accessibilityLabel,
 }: {
   label: string;
   onPress: () => void;
@@ -64,6 +65,7 @@ export function PillButton({
   style?: StyleProp<ViewStyle>;
   leftIcon?: React.ReactNode;
   compact?: boolean;
+  accessibilityLabel?: string;
 }) {
   const { palette } = useTheme();
   const bg =
@@ -74,8 +76,7 @@ export function PillButton({
         : variant === 'light'
           ? '#FFFFFF'
           : 'transparent';
-  const borderColor =
-    variant === 'outline' ? palette.border : 'transparent';
+  const borderColor = variant === 'outline' ? palette.border : 'transparent';
   const textColor =
     variant === 'primary'
       ? palette.primaryText
@@ -89,6 +90,9 @@ export function PillButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.pillBtn,
         compact && styles.pillBtnCompact,
@@ -96,13 +100,18 @@ export function PillButton({
           backgroundColor: bg,
           borderColor,
           borderWidth: variant === 'outline' ? 1 : 0,
-          opacity: disabled ? 0.4 : pressed ? 0.84 : 1,
+          opacity: disabled ? 0.42 : pressed ? 0.85 : 1,
         },
         style,
       ]}
     >
-      {leftIcon ? <View style={{ marginRight: 7 }}>{leftIcon}</View> : null}
-      <Text style={[compact ? TYPOGRAPHY.caption : TYPOGRAPHY.bodyStrong, { color: textColor, fontWeight: '600' }]}>
+      {leftIcon ? <View style={{ marginRight: 8 }}>{leftIcon}</View> : null}
+      <Text
+        style={[
+          compact ? TYPOGRAPHY.caption : TYPOGRAPHY.bodyStrong,
+          { color: textColor, fontWeight: '600', textAlign: 'center', flexShrink: 1 },
+        ]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -131,7 +140,9 @@ export function SoftBadge({
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-      <Text style={[TYPOGRAPHY.micro, { color: colors.text }]}>{label}</Text>
+      <Text style={[TYPOGRAPHY.caption, { color: colors.text, fontWeight: '600', fontSize: 12 }]}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -163,6 +174,8 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(1, progress));
   return (
     <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
       style={{
         height,
         width: '100%',
@@ -183,9 +196,6 @@ export function ProgressBar({
   );
 }
 
-/**
- * Wellywise-inspired semi-circular SVG goal arc gauge.
- */
 export function GoalArcGauge({
   progress,
   centerValue,
@@ -197,29 +207,33 @@ export function GoalArcGauge({
 }) {
   const { palette } = useTheme();
   const clamped = Math.max(0.04, Math.min(1, progress));
-  const width = 128;
-  const height = 74;
-  const radius = 50;
-  const cx = 64;
-  const cy = 62;
+  const width = 124;
+  const height = 72;
+  const radius = 48;
+  const cx = 62;
+  const cy = 60;
   const circumference = Math.PI * radius;
   const dashOffset = circumference * (1 - clamped);
   const arcPath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`;
 
   return (
-    <View style={{ width, height, alignItems: 'center', justifyContent: 'flex-end' }}>
+    <View
+      accessible
+      accessibilityLabel={`Genel ilerleme ${centerValue}, ${centerLabel}`}
+      style={{ width, height, alignItems: 'center', justifyContent: 'flex-end' }}
+    >
       <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
         <Path
           d={arcPath}
           stroke={palette.surfaceSoft}
-          strokeWidth={11}
+          strokeWidth={10}
           strokeLinecap="round"
           fill="none"
         />
         <Path
           d={arcPath}
           stroke={palette.coral}
-          strokeWidth={11}
+          strokeWidth={10}
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={dashOffset}
@@ -229,7 +243,7 @@ export function GoalArcGauge({
       <Text style={[TYPOGRAPHY.h2, { color: palette.textPrimary, fontWeight: '700' }]}>
         {centerValue}
       </Text>
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginTop: 1 }]}>
+      <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, fontSize: 11 }]}>
         {centerLabel}
       </Text>
     </View>
@@ -336,7 +350,7 @@ export function IOComparisonBox({ io }: { io: TestCaseIO }) {
   const { palette } = useTheme();
   return (
     <SoftCard style={{ padding: 16 }}>
-      <Text style={[TYPOGRAPHY.micro, { color: palette.textMuted, marginBottom: 10 }]}>
+      <Text style={[TYPOGRAPHY.caption, { color: palette.textMuted, marginBottom: 10 }]}>
         {io.label}
       </Text>
       <View style={[styles.ioPill, { backgroundColor: palette.surfaceSoft }]}>
@@ -355,6 +369,9 @@ export function IOComparisonBox({ io }: { io: TestCaseIO }) {
   );
 }
 
+/**
+ * Accessible PillTabs with >=44pt touch height and non-color selected indicator (Check icon + surface elevation + bold).
+ */
 export function PillTabs<T extends string | number>({
   options,
   value,
@@ -366,23 +383,35 @@ export function PillTabs<T extends string | number>({
 }) {
   const { palette } = useTheme();
   return (
-    <View style={[styles.tabRow, { backgroundColor: palette.surfaceSoft }]}>
+    <View
+      accessibilityRole="tablist"
+      style={[styles.tabRow, { backgroundColor: palette.surfaceSoft }]}
+    >
       {options.map((opt) => {
         const selected = opt.value === value;
         return (
           <Pressable
             key={String(opt.value)}
             onPress={() => onChange(opt.value)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
             style={[
               styles.tabPill,
-              selected && { backgroundColor: palette.surface },
+              selected && {
+                backgroundColor: palette.surface,
+                borderColor: palette.border,
+                borderWidth: 1,
+              },
             ]}
           >
+            {selected ? (
+              <Check size={13} color={palette.primary} strokeWidth={2.8} style={{ marginRight: 4 }} />
+            ) : null}
             <Text
               style={[
                 TYPOGRAPHY.caption,
                 {
-                  color: selected ? palette.textPrimary : palette.textMuted,
+                  color: selected ? palette.textPrimary : palette.textSecondary,
                   fontWeight: selected ? '700' : '500',
                 },
               ]}
@@ -406,16 +435,18 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
   },
   pillBtn: {
-    minHeight: 50,
+    minHeight: 48,
     borderRadius: RADIUS.pill,
     paddingHorizontal: 22,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   pillBtnCompact: {
-    minHeight: 36,
+    minHeight: 44,
     paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   badge: {
     borderRadius: RADIUS.pill,
@@ -490,7 +521,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   ioKey: {
-    width: 44,
+    width: 48,
     fontSize: 11,
     fontWeight: '700',
     paddingTop: 2,
@@ -503,9 +534,10 @@ const styles = StyleSheet.create({
   },
   tabPill: {
     flex: 1,
-    paddingVertical: 9,
-    paddingHorizontal: 10,
+    minHeight: 44,
+    paddingHorizontal: 8,
     borderRadius: RADIUS.pill,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -135,22 +135,27 @@ export function ProfileScreen({ onStartModule }: ProfileScreenProps) {
         </View>
       </SoftCard>
 
-      {/* Mistakes to Review */}
-      {mistakeEntries.length > 0 ? (
-        <SoftCard style={{ marginTop: 16 }}>
-          <View style={[styles.rowBetween, { marginBottom: 12 }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <AlertCircle size={16} color={palette.error} />
-              <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
-                Tekrar Edilecekler ({mistakeEntries.length})
-              </Text>
-            </View>
+      {/* Mistakes to Review (with calm empty state) */}
+      <SoftCard style={{ marginTop: 16 }}>
+        <View style={[styles.rowBetween, { marginBottom: 12 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <AlertCircle
+              size={16}
+              color={mistakeEntries.length > 0 ? palette.error : palette.primary}
+            />
+            <Text style={[TYPOGRAPHY.h3, { color: palette.textPrimary }]}>
+              Tekrar Edilecekler ({mistakeEntries.length})
+            </Text>
           </View>
+        </View>
+        {mistakeEntries.length > 0 ? (
           <View style={{ gap: 10 }}>
             {mistakeEntries.slice(0, 5).map(({ module, step }) => (
               <Pressable
                 key={step.id}
                 onPress={() => onStartModule(module.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`${step.title} adımını tekrar et`}
                 style={[styles.mistakeRow, { backgroundColor: palette.bg }]}
               >
                 <View style={{ flex: 1 }}>
@@ -165,8 +170,14 @@ export function ProfileScreen({ onStartModule }: ProfileScreenProps) {
               </Pressable>
             ))}
           </View>
-        </SoftCard>
-      ) : null}
+        ) : (
+          <Text style={[TYPOGRAPHY.caption, { color: palette.textSecondary }]}>
+            {state.completedStepIds.length === 0
+              ? 'Henüz tamamlanan ders yok. İlk dersine başladığında zorlandığın adımlar burada toplanır.'
+              : 'Tekrar gerektiren hata yok. Tüm çözülen adımlar temiz.'}
+          </Text>
+        )}
+      </SoftCard>
 
       {/* Appearance */}
       <SoftCard style={{ marginTop: 16 }}>

@@ -267,10 +267,12 @@ export function LessonPlayerScreen({ module, onExit }: LessonPlayerScreenProps) 
       <View style={styles.header}>
         <Pressable
           onPress={onExit}
+          accessibilityRole="button"
+          accessibilityLabel="Dersi kapat ve müfredata dön"
           style={[styles.closeCircle, { backgroundColor: palette.surface }]}
-          hitSlop={8}
+          hitSlop={6}
         >
-          <X size={18} color={palette.textPrimary} strokeWidth={2} />
+          <X size={20} color={palette.textPrimary} strokeWidth={2} />
         </Pressable>
         <View style={{ flex: 1, marginHorizontal: 14 }}>
           <ProgressBar progress={(stepIndex + 1) / module.steps.length} height={6} />
@@ -778,8 +780,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   closeCircle: {
-    width: 36,
-    height: 36,
+    width: 48,
+    height: 48,
     borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
